@@ -14,7 +14,10 @@ const CustomerProfile: React.FC = () => {
   const [customerContact, setCustomerContact] = useState<string>("");
   const [customerAddress, setCustomerAddress] = useState<string>("");
 
-  const accountId = parseInt(localStorage.getItem("accountId") || "1", 10); // Example: Fetch from localStorage
+  const { profileData } = useAppSelector(
+    (state) => state?.localStorage?.auth || {}
+  );
+  const accountId = profileData.accountId;
 
   // Fetch customers from API when the component is mounted
   useEffect(() => {
@@ -41,9 +44,6 @@ const CustomerProfile: React.FC = () => {
     resetFormFields(); // Reset form fields on close
   };
 
-  const { profileData } = useAppSelector(
-    (state) => state?.localStorage?.auth || {}
-  );
   // Handle Form Submission (Saving Customer)
   const handleSave = async () => {
     try {

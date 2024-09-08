@@ -14,8 +14,10 @@ const SupplierProfile: React.FC = () => {
   const [supplierContact, setSupplierContact] = useState<string>("");
   const [supplierAddress, setSupplierAddress] = useState<string>("");
 
-  const accountId = parseInt(localStorage.getItem("accountId") || "1", 10); // Example: Fetch from localStorage
-
+  const { profileData } = useAppSelector(
+    (state) => state?.localStorage?.auth || {}
+  );
+  const accountId = profileData.accountId;
   // Fetch suppliers from API when the component is mounted
   useEffect(() => {
     loadSuppliers();
@@ -40,9 +42,7 @@ const SupplierProfile: React.FC = () => {
     setIsModalVisible(false);
     resetFormFields(); // Reset form fields on close
   };
-  const { profileData } = useAppSelector(
-    (state) => state?.localStorage?.auth || {}
-  );
+
   // Handle Form Submission (Saving Supplier)
   const handleSave = async () => {
     try {

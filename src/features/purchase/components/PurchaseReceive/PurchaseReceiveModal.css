@@ -1,0 +1,32 @@
+/* src/features/purchase/components/PurchaseReceive/PurchaseReceiveModal.css */
+
+.header-container {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+  }
+  
+  .header-input {
+    display: flex;
+    flex-direction: column;
+    width: 32%;
+  }
+  
+  .remarks-with-save {
+    position: relative;
+  }
+  
+  .save-button {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateY(-50%);
+    background-color: #25b43d;
+    color: white;
+  }
+  

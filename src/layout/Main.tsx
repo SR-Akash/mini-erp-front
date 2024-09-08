@@ -4,9 +4,9 @@ import React from "react";
 import { Navigate, useRoutes } from "react-router-dom";
 import Topbar from "./Topbar";
 import { isShowTopbar } from "./utils";
-import Purchase from "../features/purchase";
 import Dashboard from "../features/dashboard";
 import ConfigurationPage from "../features/configuration/ConfigurationPage";
+import PurchaseLandingPage from "../features/purchase/components/PurchaseLandingPage/PurchaseLandingPage";
 const Main = () => {
   const { isShow } = useAppSelector(
     (state) => state?.localStorage?.menus || {}
@@ -22,7 +22,7 @@ const Main = () => {
     },
     { path: "/dashboard", element: <Dashboard /> },
     { path: "/sales", element: <h4>Sales</h4> },
-    { path: "/purchase", element: <Purchase /> },
+    { path: "/purchase", element: <PurchaseLandingPage /> },
     { path: "/accounts", element: <h4>Accounts</h4> },
     { path: "/configuration", element: <ConfigurationPage /> },
     { path: "/reports", element: <h4>Reports</h4> },
