@@ -1,0 +1,73 @@
+.create-item-modal .ant-modal-content {
+  padding: 20px;
+}
+
+.create-item-modal .ant-modal-header {
+  background-color: #f0f0f0;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  font-weight: 500;
+  color: #000;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.form-actions {
+  margin-top: 20px;
+}
+
+.ant-input,
+.ant-input-textarea {
+  padding: 10px;
+  font-size: 14px;
+}
+
+.ant-btn-primary {
+  background-color: #52c41a;
+  border-color: #52c41a;
+}
+
+.ant-btn-primary:hover {
+  background-color: #73d13d;
+  border-color: #73d13d;
+}
+
+.item-profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.create-item-btn {
+  float: right;
+  background-color: #1890ff;
+  border-color: #1890ff;
+  margin-bottom: 20px;
+}
+
+.create-item-btn:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+table th {
+  background-color: #f2f2f2;
+}

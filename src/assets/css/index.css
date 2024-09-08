@@ -1,0 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap");
+@import "./layout.css";
+@import "./sidemenu.css";
+@import "./topbar.css";
+@import "./common.css";
+@import "./components.css";

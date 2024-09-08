@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  crm-front:
+    image: iboslimitedbd/#{Deployment}#:#{Build.BuildId}#
+    ports:
+      - "91:80"
+    restart: always

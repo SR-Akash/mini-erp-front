@@ -1,0 +1,63 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+  /* background-color: #f9fafb; */
+}
+
+.app-v2 {
+  display: flex;
+  height: 100%;
+  direction: ltr;
+}
+
+.app-v2 main {
+  margin-left: 233px;
+  transition: margin-left 0s ease 0s, left 0s ease 0s, right 0s ease 0s,
+    all 300ms ease 0s;
+  width: calc(100% - 233px);
+  /* overflow: auto; */
+}
+
+.app-v2 main:is(.collapse) {
+  margin-left: 0px;
+}
+
+.app-v2 main.collapse {
+  margin-left: 72px;
+  width: calc(100% - 72px);
+}
+.app-v2 main .main-content {
+  height: calc(100vh - 62px);
+  /* overflow: auto; */
+  /* overflow-x: hidden; */
+}
+.app-v2 main .main-content.full-height{
+  height: calc(100vh - 25px);
+}
+.app-v2 main .main-content .create-topbar + .app-v2 main .main-content{
+  height: calc(100vh - 0px);
+}
+.app-v2 main .main-body {
+  margin: 16px 4px;
+  margin-bottom: 0;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--scrollbar-thumb-hover);
+}

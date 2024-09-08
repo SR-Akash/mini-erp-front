@@ -1,0 +1,130 @@
+
+.login .login-header {
+  background: var(--Verdigris-500);
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  padding-left: 156px;
+}
+.login .login-card {
+  width: 428px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0px 0px 0px 1px #dcdcdc;
+  margin-top: 32px;
+  margin-bottom: 16px;
+  padding: 34px;
+  background: white;
+}
+.login .login-collapse {
+  width: 428px;
+  margin-left: auto;
+  margin-right: auto;
+}
+/* mobile screen  */
+@media (max-width: 768px) {
+  .login .login-collapse {
+    width: 100%;
+    padding: 10px;
+  }
+  .login .login-card {
+    padding: 24px;
+    width: 100%;
+  }
+}
+
+.login .ant-collapse-header {
+  padding: 12px 2px !important;
+}
+.login .ant-collapse-item {
+  border-bottom: 1px solid #dcdcdc;
+  border-top: 1px solid #dcdcdc;
+}
+.login .ant-collapse-item:last-child {
+  border-top: 0;
+  border-radius: 0;
+}
+.login .ant-collapse-content-box {
+  padding-bottom: 12px;
+  padding-top: 0 !important;
+  padding-left: 2px !important;
+  padding-right: 2px !important;
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #525257;
+}
+.login .email{
+  color : #2196F3 !important;
+  text-decoration: underline;
+}
+.login .phone{
+  font-weight: 500;
+  font-size: 14px;
+  color: #000000;
+}
+.login .ant-collapse-header-text {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1c1c1c;
+}
+.login .login-title {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 32px;
+  color: #1c1c1c;
+  padding-bottom: 8px;
+}
+.login .login-subtitle {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 16px;
+  color: #525257;
+  padding-bottom: 22px;
+}
+.login .login-input-label {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  color: #1c1c1c;
+  padding-bottom: 6px;
+}
+.login .login-input-label.password {
+  padding-top: 6px;
+}
+
+.login .login-button {
+  margin-top: 24px;
+  width: 100%;
+  padding: 8px 0;
+  background: #f45d48;
+  box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.02);
+  border: none;
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  color: #ffffff;
+  cursor: pointer;
+}
+.login .input {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  color: #1c1c1c;
+  padding: 8px 11px;
+  border-radius: unset !important;
+}

@@ -1,0 +1,76 @@
+.topbar {
+  border-bottom: 1px solid #eaeaea;
+  height: 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 16px;
+}
+.topbar .plus-icon svg {
+  color: var(--Fireopal-500);
+  height: 21px;
+  width: 21px;
+  cursor: pointer;
+  margin-right: 18px;
+}
+.topbar .user-avatar {
+  cursor: pointer;
+}
+.topbar .user-avatar,
+.topbar .user-avatar img {
+  height: 32px;
+  width: 32px;
+}
+.topbar .user-avatar .ant-avatar-string {
+  line-height: 32px;
+}
+
+.topbar .topbar-search-input{
+  border: none;
+  min-width: 300px;
+}
+.topbar .topbar-search-input:focus{
+  box-shadow: none;
+}
+.topbar .search {
+  margin-left: 18px;
+  cursor: pointer;
+}
+.topbar .search,
+.topbar .search svg {
+  color: var(--System-900);
+  height: 20px;
+  width: 20px;
+}
+.topbar .question,
+.topbar .bell,
+.topbar .star,
+.topbar .setting,
+.topbar .carry {
+  margin-right: 24px;
+  cursor: pointer;
+}
+.topbar .question,
+.topbar .question svg,
+.topbar .bell,
+.topbar .bell svg,
+.topbar .star,
+.topbar .star svg,
+.topbar .setting,
+.topbar .setting svg,
+.topbar .carry,
+.topbar .carry svg {
+  color: var(--System-900);
+  height: 20px;
+  width: 20px;
+}
+
+.topbar-first-ddl-list {
+  min-width: 162px !important;
+}
+
+.topbar .line {
+  height: 32px;
+  width: 1px;
+  background: var(--System-400);
+}

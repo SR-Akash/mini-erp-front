@@ -1,0 +1,27 @@
+.view-left-top .m-select-main {
+  margin-bottom: 0 !important;
+}
+
+.view-left-top .ant-select-selector {
+  padding: 0 !important;
+  height: 18px !important;
+}
+.view-left-top .m-select-main .ant-select {
+  margin-top: 0 !important;
+}
+.view-left-top .ant-form-item-control-input-content {
+  line-height: 0 !important;
+}
+.view-left-top .ant-form-item-control-input {
+  min-height: 18px !important;
+}
+
+.view-left-top .ant-select-arrow {
+  margin-top: -2px;
+  inset-inline-end: 3px;
+}
+
+.view-left-top .ant-select-single .ant-select-selector,
+.view-left-top .ant-select-arrow {
+  color: var(--Blue-400);
+}
