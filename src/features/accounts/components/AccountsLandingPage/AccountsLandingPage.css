@@ -1,0 +1,14 @@
+.accounts-landing-page {
+    padding: 20px;
+  }
+  
+  h1 {
+    margin-bottom: 20px;
+  }
+  
+  .ant-tabs {
+    background-color: #f0f2f5;
+    padding: 20px;
+    border-radius: 8px;
+  }
+  

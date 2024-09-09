@@ -6,7 +6,7 @@
 }
 
 .app-v2 .sidebar-tk-menu-first-section {
-  background: var(--Verdigris-800);
+  background: #064e3b;
   width: 72px;
   min-width: 72px;
   color: var(--System-100);
@@ -21,7 +21,7 @@
 
 .app-v2 .sidebar-tk-menu-second-section,
 .app-v2 .sidebar-tk-menu-second-section-float {
-  background: #58B19F;
+  background: #10b981;
   width: 161px;
   min-width: 161px;
   color: var(--System-100);

@@ -36,10 +36,7 @@ const ConfigurationPage: React.FC = () => {
         <button onClick={() => setActiveTab("ItemProfile")}>
           Item Profile
         </button>
-        <button onClick={() => setActiveTab("EmployeeProfile")}>
-          Employee Profile
-        </button>
-        <button onClick={() => setActiveTab("Account")}>Account</button>
+
         <button onClick={() => setActiveTab("CustomerProfile")}>
           Customer Profile
         </button>
