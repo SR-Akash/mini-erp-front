@@ -7,5 +7,6 @@ export interface Supplier {
     partnerName: string;
     partnerCode: string;
     mobile: string;
+    partnerId: number;
   }
   

@@ -12,57 +12,45 @@ import {
   message
 } from "antd";
 import { PlusOutlined, DeleteOutlined, SaveOutlined } from "@ant-design/icons";
-import axios from "axios"; // For API call
-import "./PurchaseReceiveModal.css";
+import "./PurchaseReceiveModal.css"; // Importing CSS
 import { useAppSelector } from "globalRedux/hooks";
+import moment from "moment";
+import { Item } from "models/Item";
+import { Supplier } from "models/Supplier";
+import { ItemFormData } from "models/ItemFormData";
+import axios from "axios";
+import {
+  fetchPurchases,
+  createPurchaseReceive
+} from "../../services/PurchaseService";
 
 const { Option } = Select;
-
-interface Supplier {
-  partnerId: number;
-  partnerName: string;
-}
-
-interface Item {
-  key: number;
-  itemName: string;
-  uom: string;
-  qty: number;
-  rate: number;
-  total: number;
-}
-
-interface ItemData {
-  itemId: number;
-  itemName: string;
-}
 
 const PurchaseReceiveModal: React.FC<{
   visible: boolean;
   onClose: () => void;
-}> = ({ visible, onClose }) => {
+  loadPurchases: () => void;
+}> = ({ visible, onClose, loadPurchases }) => {
   const [items, setItems] = useState<Item[]>([]);
   const [supplier, setSupplier] = useState<string>("");
   const [remarks, setRemarks] = useState<string>("");
-  const [date, setDate] = useState<string | null>(null); // Date state
+  const [date, setDate] = useState<string | null>(null);
   const [totalSum, setTotalSum] = useState<number>(0);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]); // State for supplier dropdown
-  const [itemList, setItemList] = useState<ItemData[]>([]); // State for item list
-
-  // Fetch suppliers from API when modal is opened
-  useEffect(() => {
-    if (visible) {
-      fetchSuppliers();
-      fetchItems(); // Fetch items when the modal opens
-    }
-  }, [visible]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [itemList, setItemList] = useState<ItemFormData[]>([]);
 
   const { profileData } = useAppSelector(
     (state) => state?.localStorage?.auth || {}
   );
   const accountId = profileData.accountId;
 
-  // API call to fetch suppliers
+  useEffect(() => {
+    if (visible) {
+      fetchSuppliers();
+      fetchItems();
+    }
+  }, [visible]);
+
   const fetchSuppliers = async () => {
     try {
       const response = await axios.get(
@@ -71,11 +59,9 @@ const PurchaseReceiveModal: React.FC<{
       setSuppliers(response.data);
     } catch (error) {
       message.error("Failed to fetch suppliers.");
-      console.error(error);
     }
   };
 
-  // API call to fetch items for the Item Name dropdown
   const fetchItems = async () => {
     try {
       const response = await axios.get(
@@ -83,14 +69,11 @@ const PurchaseReceiveModal: React.FC<{
       );
       setItemList(response.data);
     } catch (error) {
-      message.error("Failed to fetch item list.");
-      console.error(error);
+      message.error("Failed to fetch items.");
     }
   };
 
-  // Add a new item to the table
   const addItem = () => {
-    // Prevent adding a new row if the previous row does not have an item selected
     const lastItem = items[items.length - 1];
     if (lastItem && !lastItem.itemName) {
       message.error("Please select an item before adding a new row.");
@@ -108,9 +91,7 @@ const PurchaseReceiveModal: React.FC<{
     setItems([...items, newItem]);
   };
 
-  // Handle item change and prevent duplicate items
   const handleItemChange = (index: number, field: string, value: any) => {
-    // Prevent duplicate items
     if (
       field === "itemName" &&
       items.some((item, i) => i !== index && item.itemName === value)
@@ -125,25 +106,22 @@ const PurchaseReceiveModal: React.FC<{
       [field]: value,
       total:
         field === "qty" || field === "rate"
-          ? updatedItems[index].qty * updatedItems[index].rate
+          ? updatedItems?.[index]?.qty * updatedItems?.[index]?.rate
           : updatedItems[index].total
     };
     setItems(updatedItems);
   };
 
-  // Calculate the total sum of all items
   useEffect(() => {
-    const sum = items.reduce((acc, item) => acc + item.total, 0);
+    const sum = items.reduce((acc, item: any) => acc + item.total, 0);
     setTotalSum(sum);
   }, [items]);
 
-  // Remove an item from the table
   const removeItem = (key: number) => {
     setItems(items.filter((item) => item.key !== key));
   };
 
-  // Submit the form data
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!date) {
       message.error("Please select a received date.");
       return;
@@ -153,11 +131,45 @@ const PurchaseReceiveModal: React.FC<{
       return;
     }
 
-    console.log({ date, supplier, remarks, items });
-    onClose(); // Close the modal after submission
+    // Construct the payload
+    const payload = {
+      header: {
+        receiveCode: "",
+        receivedDate: moment(date).toISOString(),
+        receivedDateLanding: moment(date).format("YYYY-MM-DD"),
+        accountId,
+        supplierId: suppliers.find((sup) => sup.partnerName === supplier)
+          ?.partnerId,
+        supplierName: supplier,
+        remarks,
+        actionById: profileData.userId, // Assuming actionById is current user's ID
+        actionByName: profileData.userName, // Assuming actionByName is current user's name
+        isActive: true
+      },
+      rows: items.map((item: any) => ({
+        rowId: 0,
+        headerId: 0, // Will be populated on the server-side
+        itemId: itemList.find((i) => i.itemName === item.itemName)?.itemId,
+        itemName: item.itemName,
+        uomName: item.uom,
+        quantity: item.qty,
+        rate: item.rate,
+        totalAmount: item.qty * item.rate,
+        isActive: true
+      }))
+    };
+
+    try {
+      // Call the API to save the data
+      await createPurchaseReceive(payload);
+      message.success("Purchase receive saved successfully.");
+      loadPurchases();
+      onClose(); // Close modal on success
+    } catch (error) {
+      message.error("Failed to save purchase receive.");
+    }
   };
 
-  // Table columns with fixed input field sizes and calculated total
   const columns = [
     {
       title: "SL",
@@ -174,7 +186,7 @@ const PurchaseReceiveModal: React.FC<{
           value={items[index].itemName}
           onChange={(value) => handleItemChange(index, "itemName", value)}
           placeholder="Select Item"
-          style={{ width: "150px" }} // Fixed width for Item Name input
+          style={{ width: "150px" }}
         >
           {itemList.map((item) => (
             <Option key={item.itemId} value={item.itemName}>
@@ -185,7 +197,7 @@ const PurchaseReceiveModal: React.FC<{
       )
     },
     {
-      title: "UoM", // UoM is now a text input field
+      title: "UoM",
       dataIndex: "uom",
       key: "uom",
       render: (text: any, record: Item, index: number) => (
@@ -193,7 +205,7 @@ const PurchaseReceiveModal: React.FC<{
           value={items[index].uom}
           onChange={(e) => handleItemChange(index, "uom", e.target.value)}
           placeholder="Enter UoM"
-          style={{ width: "100px" }} // Fixed width for UoM input
+          style={{ width: "100px" }}
         />
       )
     },
@@ -206,7 +218,7 @@ const PurchaseReceiveModal: React.FC<{
           min={1}
           value={items[index].qty}
           onChange={(value) => handleItemChange(index, "qty", value)}
-          style={{ width: "100px" }} // Fixed width for Quantity input
+          style={{ width: "100px" }}
         />
       )
     },
@@ -219,16 +231,16 @@ const PurchaseReceiveModal: React.FC<{
           min={0}
           value={items[index].rate}
           onChange={(value) => handleItemChange(index, "rate", value)}
-          style={{ width: "120px" }} // Fixed width for Rate input
+          style={{ width: "120px" }}
         />
       )
     },
     {
-      title: "Total", // This is now a calculated field
+      title: "Total",
       dataIndex: "total",
       key: "total",
       render: (text: any, record: Item, index: number) => (
-        <span>{items[index].qty * items[index].rate}</span> // Calculated field
+        <span>{items[index].qty * items[index].rate}</span>
       )
     },
     {
@@ -236,22 +248,18 @@ const PurchaseReceiveModal: React.FC<{
       dataIndex: "action",
       key: "action",
       render: (text: any, record: Item, index: number) => (
-        <div>
-          <Tooltip title="Delete Item">
-            <Button
-              icon={<DeleteOutlined />}
-              type="danger"
-              onClick={() => removeItem(record.key)}
-            />
-          </Tooltip>
-        </div>
+        <Button
+          icon={<DeleteOutlined />}
+          type="default"
+          onClick={() => removeItem(record.key)}
+        />
       )
     }
   ];
 
   return (
     <Modal
-      title="Purchase"
+      title="Purchase Receive"
       visible={visible}
       onCancel={onClose}
       width={900}
@@ -274,7 +282,6 @@ const PurchaseReceiveModal: React.FC<{
       ]}
     >
       <Form layout="vertical">
-        {/* Header Section with Save button on top-right of Remarks */}
         <div className="header-container">
           <div className="header-section">
             <div className="header-input">
@@ -283,7 +290,7 @@ const PurchaseReceiveModal: React.FC<{
               </label>
               <DatePicker
                 style={{ width: "100%" }}
-                onChange={(date, dateString) => setDate(dateString)}
+                onChange={(date, dateString) => setDate(dateString?.toString())}
               />
             </div>
 
@@ -312,8 +319,6 @@ const PurchaseReceiveModal: React.FC<{
                 onChange={(e) => setRemarks(e.target.value)}
                 placeholder="Enter remarks"
               />
-
-              {/* Save button on top-right of Remarks */}
               <Button
                 type="primary"
                 icon={<SaveOutlined />}
@@ -326,7 +331,6 @@ const PurchaseReceiveModal: React.FC<{
           </div>
         </div>
 
-        {/* Total Sum in the top-right corner */}
         <div
           style={{
             textAlign: "left",
@@ -338,7 +342,6 @@ const PurchaseReceiveModal: React.FC<{
           Total Amount: {totalSum}
         </div>
 
-        {/* Items Table */}
         <Table
           columns={columns}
           dataSource={items}

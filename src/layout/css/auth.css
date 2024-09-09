@@ -1,6 +1,6 @@
 
 .login .login-header {
-  background: var(--Verdigris-500);
+  background: #58B19F;
   display: flex;
   align-items: center;
   padding: 12px 0;
@@ -108,7 +108,7 @@
   margin-top: 24px;
   width: 100%;
   padding: 8px 0;
-  background: #f45d48;
+  background: #58B19F;
   box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.02);
   border: none;
   font-family: "Inter";

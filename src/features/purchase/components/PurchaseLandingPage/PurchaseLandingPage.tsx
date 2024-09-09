@@ -105,7 +105,11 @@ const PurchaseLandingPage: React.FC = () => {
       />
 
       {/* New Receive Modal */}
-      <PurchaseReceiveModal visible={modalVisible} onClose={closeModal} />
+      <PurchaseReceiveModal
+        visible={modalVisible}
+        onClose={closeModal}
+        loadPurchases={loadPurchases}
+      />
     </div>
   );
 };
