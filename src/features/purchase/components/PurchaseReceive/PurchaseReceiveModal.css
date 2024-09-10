@@ -1,9 +1,5 @@
 /* src/features/purchase/components/PurchaseReceive/PurchaseReceiveModal.css */
 
-.header-container {
-    display: flex;
-    flex-direction: column;
-  }
   
   .header-section {
     display: flex;

@@ -9,7 +9,7 @@ const { TabPane } = Tabs;
 const AccountsLandingPage: React.FC = () => {
   return (
     <div className="accounts-landing-page">
-      <h1>Accounts Module</h1>
+      <h2>Accounts Module</h2>
       <Tabs defaultActiveKey="1">
         <TabPane tab="Chart of Accounts" key="1">
           <ChartOfAccounts />

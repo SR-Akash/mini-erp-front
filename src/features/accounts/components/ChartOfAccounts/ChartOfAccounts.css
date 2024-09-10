@@ -1,0 +1,54 @@
+.chart-of-accounts-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.search-input {
+  width: 300px;
+  padding: 8px;
+  border: 1px solid #d9d9d9;
+}
+
+.create-button, .template-button {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  color: white;
+  padding: 8px 16px;
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
+}
+
+.create-button:hover, .template-button:hover {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.custom-table .ant-table-row {
+  cursor: pointer;
+}
+
+.custom-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: bold;
+  text-align: center;
+}
+
+.custom-table .ant-table-tbody > tr:hover {
+  background-color: #f0f7ff;
+}
+
+.template-table .ant-table-thead > tr > th {
+  background-color: #e6f7ff;
+}
+
+.template-table .ant-table-row:hover {
+  background-color: #d6eaff;
+}
