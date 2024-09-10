@@ -43,13 +43,34 @@ export const createChartOfAccount = async (payload: any) => {
   }
 };
 
+
+export const fetchCategoryList = async (accountId: number) => {
+  try {
+    const response = await axios.get(`/api/Accounts/GetChartOfAccCategoryList?accountId=${accountId}`);
+    return response.data; // Adjust based on your actual response format
+  } catch (error) {
+    console.error("Error fetching category list:", error);
+    throw error;
+  }
+};
+
 // API call to create a new journal voucher
-export const createJournalVoucher = async (payload: CreateJournalVoucherPayload) => {
+export const createJournalVoucher = async (payload: any) => {
   try {
     const response = await axios.post("/api/Accounts/CreateJournalVoucher", payload);
     return response.data;
   } catch (error) {
     console.error("Error creating journal voucher:", error);
+    throw error;
+  }
+};
+
+export const updateChartOfAccount = async (payload: any) => {
+  try {
+    const response = await axios.post("/api/Accounts/UpdateChartofAcc", payload);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating Chart of Account:", error);
     throw error;
   }
 };

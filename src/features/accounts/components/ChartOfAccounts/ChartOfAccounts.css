@@ -9,6 +9,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  
 }
 
 .search-input {
@@ -33,12 +34,14 @@
 
 .custom-table .ant-table-row {
   cursor: pointer;
+  line-height: 0.2;
 }
 
 .custom-table .ant-table-thead > tr > th {
   background-color: #fafafa;
   font-weight: bold;
   text-align: center;
+  line-height: 0.2;
 }
 
 .custom-table .ant-table-tbody > tr:hover {
@@ -51,4 +54,5 @@
 
 .template-table .ant-table-row:hover {
   background-color: #d6eaff;
+  
 }

@@ -1,34 +1,55 @@
 import React, { useEffect, useState } from "react";
-import { Table, Button, Input, Modal, message, Checkbox, Tree } from "antd";
-import { PlusOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Button,
+  Input,
+  Modal,
+  message,
+  Checkbox,
+  Tree,
+  Select
+} from "antd";
+import { PlusOutlined, SearchOutlined, EditOutlined } from "@ant-design/icons";
 import {
   getChartOfAccounts,
   createChartOfAccount,
   fetchTemplateData,
-  saveSelectedTemplates,
-  saveTemplateData, // New API to save templates
-  fetchSelectedTemplates // Fetch previously selected templates
+  saveTemplateData,
+  fetchCategoryList,
+  updateChartOfAccount
 } from "../../service/AccountsService";
 import { useAppSelector } from "globalRedux/hooks";
 import "./ChartOfAccounts.css";
 
+const { Option } = Select;
+
 interface Account {
   accountId: number;
+  chartofAccId: number;
   chartOfAccCode: string;
   chartOfAccName: string;
   chartOfAccCategoryName: string;
+  chartOfAccCategoryId: number;
 }
 
 const ChartOfAccounts: React.FC = () => {
-  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [accounts, setAccounts] = useState<any>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
+  const [isModalVisible, setIsModalVisible] = useState({
+    isVisible: false,
+    chatOfAccountId: 0
+  });
   const [isTemplateModalVisible, setIsTemplateModalVisible] =
     useState<boolean>(false);
   const [templateData, setTemplateData] = useState<any[]>([]);
   const [selectedTemplates, setSelectedTemplates] = useState<any[]>([]);
   const [newAccountCode, setNewAccountCode] = useState<string>("");
   const [newAccountName, setNewAccountName] = useState<string>("");
+  const [editAccount, setEditAccount] = useState<Account | null>(null);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<number | undefined>(
+    undefined
+  );
   const [searchValue, setSearchValue] = useState<string>("");
 
   const { profileData } = useAppSelector(
@@ -39,6 +60,7 @@ const ChartOfAccounts: React.FC = () => {
   useEffect(() => {
     if (accountId) {
       fetchAccounts(accountId, "");
+      fetchCategories();
     }
   }, [accountId]);
 
@@ -46,11 +68,21 @@ const ChartOfAccounts: React.FC = () => {
     setLoading(true);
     try {
       const data = await getChartOfAccounts(accountId, searchValue || "");
+
       setAccounts(data);
     } catch (error) {
       message.error("Failed to load accounts.");
     }
     setLoading(false);
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const data = await fetchCategoryList(accountId);
+      setCategories(data);
+    } catch (error) {
+      message.error("Failed to load categories.");
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -69,12 +101,16 @@ const ChartOfAccounts: React.FC = () => {
   };
 
   const showModal = () => {
-    setIsModalVisible(true);
+    setIsModalVisible((prev) => ({
+      ...prev,
+      isVisible: true
+    }));
+    setEditAccount(null); // Reset the edit account when opening create modal
   };
 
   const handleSaveAccount = async () => {
-    if (!newAccountCode || !newAccountName) {
-      message.error("Please enter both code and name.");
+    if (!newAccountCode || !newAccountName || !selectedCategory) {
+      message.error("Please enter both code, name, and select a category.");
       return;
     }
 
@@ -83,25 +119,42 @@ const ChartOfAccounts: React.FC = () => {
       chartOfAccName: newAccountName,
       accountId: profileData.accountId,
       branchId: 0,
-      chartOfAccCategoryId: 0,
-      chartOfAccCategoryName: "",
+      chartofAccId: isModalVisible.chatOfAccountId, // Pass chartOfAccId when editing
+      chartOfAccCategoryId: selectedCategory,
+      chartOfAccCategoryName:
+        categories.find((c) => c.chartOfAccCategoryId === selectedCategory)
+          ?.chartOfAccCategoryName || "",
       actionById: profileData.userId
     };
 
     try {
-      await createChartOfAccount(payload);
-      message.success("Account created successfully.");
-      setIsModalVisible(false);
+      if (editAccount) {
+        // Update existing account
+        await updateChartOfAccount(payload);
+        message.success("Account updated successfully.");
+      } else {
+        // Create new account
+        await createChartOfAccount(payload);
+        message.success("Account created successfully.");
+      }
+
+      setIsModalVisible((prev) => ({
+        ...prev,
+        isVisible: false
+      }));
       setNewAccountCode("");
       setNewAccountName("");
-      fetchAccounts(accountId, "");
+      fetchAccounts(accountId, ""); // Reload the accounts
     } catch (error) {
-      message.error("Failed to create account.");
+      message.error("Failed to save account.");
     }
   };
 
   const handleCancel = () => {
-    setIsModalVisible(false);
+    setIsModalVisible((prev) => ({
+      ...prev,
+      isVisible: false
+    }));
     setNewAccountCode("");
     setNewAccountName("");
   };
@@ -111,33 +164,40 @@ const ChartOfAccounts: React.FC = () => {
     try {
       const data = await fetchTemplateData(accountId);
       setTemplateData(data);
+
+      // Automatically select templates that are already checked (isPreviouslyChecked === true)
+      const preSelectedTemplates = data
+        .filter((item: any) => item.isPreviouslyChecked)
+        .map((item: any) => item.chartOfAccCode);
+
+      setSelectedTemplates(preSelectedTemplates); // Set initially selected templates
     } catch (error) {
       message.error("Failed to load template data.");
     }
   };
 
-  // Handle saving the selected template data to the backend
   const handleTemplateSave = async () => {
     try {
-      // Prepare the payload based on the selected templates
       const templatePayload = selectedTemplates.map((templateId: string) => {
         const template = templateData.find(
           (t) => t.chartOfAccCode === templateId
         );
+
         return {
-          templateId: 0, // As per the payload
+          templateId: template.templateId || 0,
           chartOfAccName: template.chartOfAccName,
           chartOfAccCode: template.chartOfAccCode,
           accountId: profileData.accountId,
-          chartOfAccCategoryId: 0, // Adjust if you have category ID
+          chartOfAccCategoryId: template.chartOfAccCategoryId || 0,
           chartOfAccCategoryName: template.chartOfAccCategoryName,
-          isPreviouslyChecked: true // Assuming it's the first time
+          isPreviouslyChecked: true,
+          actionById: profileData.userId
         };
       });
 
-      // Call API to save the templates
       await saveTemplateData(templatePayload);
       message.success("Templates saved successfully.");
+      await fetchAccounts(accountId, ""); // Refresh the accounts list after saving
       setIsTemplateModalVisible(false);
     } catch (error) {
       message.error("Failed to save templates.");
@@ -231,6 +291,21 @@ const ChartOfAccounts: React.FC = () => {
 
   const treeData = groupByCategory(templateData);
 
+  const handleEdit = (account: Account) => {
+    console.log(account);
+    setEditAccount({
+      ...account, // Spread the account object to include all its properties
+      chartofAccId: account.chartofAccId // Ensure chartOfAccId is part of this object
+    });
+    setNewAccountCode(account.chartOfAccCode);
+    setNewAccountName(account.chartOfAccName);
+    setSelectedCategory(account.chartOfAccCategoryId);
+    setIsModalVisible({
+      isVisible: true,
+      chatOfAccountId: account?.chartofAccId ?? 0
+    });
+  };
+
   const columns = [
     {
       title: "SL",
@@ -243,7 +318,17 @@ const ChartOfAccounts: React.FC = () => {
       key: "chartOfAccCategoryName"
     },
     { title: "Code", dataIndex: "chartOfAccCode", key: "chartOfAccCode" },
-    { title: "Name", dataIndex: "chartOfAccName", key: "chartOfAccName" }
+    { title: "Name", dataIndex: "chartOfAccName", key: "chartOfAccName" },
+    {
+      title: "Action",
+      key: "action",
+      align: "center",
+      render: (_text: any, record: Account) => (
+        <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>
+          Edit
+        </Button>
+      )
+    }
   ];
 
   return (
@@ -287,22 +372,55 @@ const ChartOfAccounts: React.FC = () => {
       />
 
       <Modal
-        title="Create Chart of Account"
-        visible={isModalVisible}
-        onOk={handleSaveAccount}
+        title={editAccount ? "Edit Account" : "Create Account"}
+        visible={isModalVisible?.isVisible}
         onCancel={handleCancel}
       >
+        <label>Account Code</label>
         <Input
-          placeholder="Account Code"
           value={newAccountCode}
           onChange={(e) => setNewAccountCode(e.target.value)}
           style={{ marginBottom: "10px" }}
         />
+
+        <label>Account Name</label>
         <Input
-          placeholder="Account Name"
           value={newAccountName}
           onChange={(e) => setNewAccountName(e.target.value)}
+          style={{ marginBottom: "10px" }}
         />
+
+        <label>Category</label>
+        <Select
+          placeholder="Select Category"
+          value={selectedCategory}
+          onChange={(value) => setSelectedCategory(value)}
+          style={{ width: "100%" }}
+        >
+          {categories.map((category) => (
+            <Option
+              key={category.chartOfAccCategoryId}
+              value={category.chartOfAccCategoryId}
+            >
+              {category.chartOfAccCategoryName}
+            </Option>
+          ))}
+        </Select>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "end",
+            marginTop: "10px",
+            gap: "10px"
+          }}
+        >
+          <Button key="cancel" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button key="save" type="primary" onClick={handleSaveAccount}>
+            {editAccount ? "Update" : "Save"}
+          </Button>
+        </div>
       </Modal>
 
       <Modal
@@ -311,21 +429,25 @@ const ChartOfAccounts: React.FC = () => {
         onCancel={() => setIsTemplateModalVisible(false)}
         width={800}
       >
-        {/* Adding Save Button */}
-        <div style={{ marginTop: "10px", textAlign: "right" }}>
-          <Button
-            type="primary"
-            onClick={handleTemplateSave} // Call the save function on button click
-          >
-            Save
-          </Button>
-        </div>
-        <div style={{ marginBottom: "10px" }}>
-          <Button onClick={handleSelectAll}>
-            {selectedTemplates.length === templateData.length
-              ? "Deselect All"
-              : "Select All"}
-          </Button>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            marginBottom: "10px"
+          }}
+        >
+          <div>
+            <Button onClick={handleSelectAll}>
+              {selectedTemplates.length === templateData.length
+                ? "Deselect All"
+                : "Select All"}
+            </Button>
+          </div>
+          <div>
+            <Button type="primary" onClick={handleTemplateSave}>
+              Save
+            </Button>
+          </div>
         </div>
 
         <Tree
