@@ -19,8 +19,8 @@
 }
 
 .create-button, .template-button {
-  background-color: #1890ff;
-  border-color: #1890ff;
+  background-color: #10b981;
+  border-color: #10b981;
   color: white;
   padding: 8px 16px;
   transition: background-color 0.3s ease;
@@ -28,8 +28,8 @@
 }
 
 .create-button:hover, .template-button:hover {
-  background-color: #40a9ff;
-  border-color: #40a9ff;
+  background-color: #10b981;
+  border-color: #10b981;
 }
 
 .custom-table .ant-table-row {
