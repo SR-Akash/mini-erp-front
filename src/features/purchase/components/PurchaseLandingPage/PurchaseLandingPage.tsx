@@ -101,6 +101,7 @@ const PurchaseLandingPage: React.FC = () => {
         dataSource={purchaseData}
         columns={columns}
         loading={loading}
+        className="custom-table"
         rowKey="id"
       />
 

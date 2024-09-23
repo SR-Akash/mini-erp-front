@@ -376,26 +376,28 @@ const ChartOfAccounts: React.FC = () => {
         visible={isModalVisible?.isVisible}
         onCancel={handleCancel}
       >
-        <label>Account Code</label>
+        <label>Chart of Acc Code</label>
         <Input
           value={newAccountCode}
+          placeholder="Chart of Acc Code"
           onChange={(e) => setNewAccountCode(e.target.value)}
           style={{ marginBottom: "10px" }}
         />
 
-        <label>Account Name</label>
+        <label>Chart of Acc Name</label>
         <Input
           value={newAccountName}
+          placeholder="Chart of Acc Name"
           onChange={(e) => setNewAccountName(e.target.value)}
           style={{ marginBottom: "10px" }}
         />
 
-        <label>Category</label>
+        <label>Chart of Acc Category</label>
         <Select
-          placeholder="Select Category"
           value={selectedCategory}
           onChange={(value) => setSelectedCategory(value)}
           style={{ width: "100%" }}
+          placeholder="Select Category"
         >
           {categories.map((category) => (
             <Option

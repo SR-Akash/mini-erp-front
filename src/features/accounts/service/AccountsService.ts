@@ -74,3 +74,30 @@ export const updateChartOfAccount = async (payload: any) => {
     throw error;
   }
 };
+
+
+export const getJournalVoucherLandingData = async (
+  accountId: number,
+  fromDate?: string,
+  toDate?: string,
+  search?: string,
+  viewOrder: string = "desc",
+  pageNo: number = 1,
+  pageSize: number = 15
+) => {
+  const url = `/api/Accounts/GetJournalVoucherLandingPagination?accountId=${accountId}&viewOrder=${viewOrder}&pageNo=${pageNo}&pageSize=${pageSize}`;
+
+  let queryString = url;
+  if (fromDate) queryString += `&fromDate=${fromDate}`;
+  if (toDate) queryString += `&toDate=${toDate}`;
+  if (search) queryString += `&search=${encodeURIComponent(search)}`;
+
+  const response = await axios.get(queryString);
+  return response.data;
+};
+
+export const getJournalVoucherById = async (journalId: number) => {
+  const url = `/api/Accounts/GetJournalVoucherById?journalId=${journalId}`;
+  const response = await axios.get(url);
+  return response.data; // Ensure the API response is returned properly
+};
