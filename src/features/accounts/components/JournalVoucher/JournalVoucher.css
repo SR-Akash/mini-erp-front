@@ -76,3 +76,13 @@
     white-space: nowrap;
   }
   
+  .item-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  
+  .item-row .ant-form-item {
+    flex: 1;
+  }
+  

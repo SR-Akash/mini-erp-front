@@ -1,14 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Table, Button, Input, DatePicker, Pagination, Modal } from "antd";
-import { PlusOutlined, EyeOutlined, SearchOutlined } from "@ant-design/icons";
+import {
+  Table,
+  Button,
+  Input,
+  DatePicker,
+  Pagination,
+  Modal,
+  Form,
+  Select,
+  InputNumber
+} from "antd";
+import {
+  PlusOutlined,
+  EyeOutlined,
+  SearchOutlined,
+  MinusCircleOutlined
+} from "@ant-design/icons";
 import {
   getJournalVoucherLandingData,
-  getJournalVoucherById
-} from "../../service/AccountsService"; // Assuming this service exists for fetching voucher details
+  getJournalVoucherById,
+  saveJournalVoucher
+} from "../../service/AccountsService"; // Assuming save API exists
 import moment from "moment";
 import "./JournalVoucher.css";
 
 const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 const JournalVoucherLandingPage: React.FC = () => {
   const [journalVouchers, setJournalVouchers] = useState<any[]>([]);
@@ -30,6 +47,11 @@ const JournalVoucherLandingPage: React.FC = () => {
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
   const [voucherDetailsLoading, setVoucherDetailsLoading] =
     useState<boolean>(false);
+
+  // Create Modal states
+  const [isCreateModalVisible, setIsCreateModalVisible] =
+    useState<boolean>(false);
+  const [form] = Form.useForm();
 
   useEffect(() => {
     fetchJournalVouchers();
@@ -71,6 +93,18 @@ const JournalVoucherLandingPage: React.FC = () => {
     setVoucherDetailsLoading(false);
   };
 
+  // Handle form submission (save API call)
+  const handleSave = async (values: any) => {
+    try {
+      await saveJournalVoucher(values); // Call the save API with form values
+      setIsCreateModalVisible(false);
+      form.resetFields(); // Reset the form after save
+      fetchJournalVouchers(); // Refresh the voucher list
+    } catch (error) {
+      console.error("Failed to save journal voucher", error);
+    }
+  };
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
   };
@@ -88,7 +122,7 @@ const JournalVoucherLandingPage: React.FC = () => {
   };
 
   const handleCreateClick = () => {
-    console.log("Create new Journal Voucher");
+    setIsCreateModalVisible(true); // Open the create modal
   };
 
   const handleViewClick = (record: any) => {
@@ -103,6 +137,11 @@ const JournalVoucherLandingPage: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalVisible(false);
     setSelectedVoucher(null); // Clear the modal content
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalVisible(false);
+    form.resetFields(); // Reset the form when closing
   };
 
   const columns = [
@@ -307,6 +346,118 @@ const JournalVoucherLandingPage: React.FC = () => {
         ) : (
           <p>No data available</p>
         )}
+      </Modal>
+
+      {/* Create Journal Voucher Modal */}
+      <Modal
+        title="Create Journal Voucher"
+        visible={isCreateModalVisible}
+        onCancel={handleCloseCreateModal}
+        footer={[
+          <Button key="cancel" onClick={handleCloseCreateModal}>
+            Cancel
+          </Button>,
+          <Button key="save" type="primary" onClick={() => form.submit()}>
+            Save
+          </Button>
+        ]}
+        width={1000}
+      >
+        <Form form={form} onFinish={handleSave} layout="vertical">
+          <Form.Item
+            name="date"
+            label="Date"
+            rules={[{ required: true, message: "Date is required" }]}
+          >
+            <DatePicker style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item
+            name="narration"
+            label="Narration"
+            rules={[{ required: true, message: "Narration is required" }]}
+          >
+            <Input.TextArea rows={3} />
+          </Form.Item>
+
+          <Form.List name="items">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map((field, index) => (
+                  <div key={field.key} className="item-row">
+                    <Form.Item
+                      {...field}
+                      name={[field.name, "chartOfAccount"]}
+                      fieldKey={[field.fieldKey, "chartOfAccount"]}
+                      label="Chart Of Account"
+                      rules={[
+                        {
+                          required: true,
+                          message: "Chart Of Account is required"
+                        }
+                      ]}
+                    >
+                      <Select placeholder="Select Account">
+                        <Option value="cash">Cash in Hand</Option>
+                        <Option value="bank">Bank</Option>
+                        <Option value="sales">Sales Revenue</Option>
+                      </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                      {...field}
+                      name={[field.name, "partner"]}
+                      fieldKey={[field.fieldKey, "partner"]}
+                      label="Customer/Supplier/Employee"
+                    >
+                      <Input placeholder="Enter name" />
+                    </Form.Item>
+
+                    <Form.Item
+                      {...field}
+                      name={[field.name, "debit"]}
+                      fieldKey={[field.fieldKey, "debit"]}
+                      label="Debit"
+                    >
+                      <InputNumber
+                        placeholder="Debit"
+                        style={{ width: "100%" }}
+                      />
+                    </Form.Item>
+
+                    <Form.Item
+                      {...field}
+                      name={[field.name, "credit"]}
+                      fieldKey={[field.fieldKey, "credit"]}
+                      label="Credit"
+                    >
+                      <InputNumber
+                        placeholder="Credit"
+                        style={{ width: "100%" }}
+                      />
+                    </Form.Item>
+
+                    <Button
+                      type="danger"
+                      icon={<MinusCircleOutlined />}
+                      onClick={() => remove(field.name)}
+                      style={{ marginTop: 30 }}
+                    />
+                  </div>
+                ))}
+
+                <Button
+                  type="dashed"
+                  onClick={() => add()}
+                  block
+                  icon={<PlusOutlined />}
+                >
+                  Add Row
+                </Button>
+              </>
+            )}
+          </Form.List>
+        </Form>
       </Modal>
     </div>
   );

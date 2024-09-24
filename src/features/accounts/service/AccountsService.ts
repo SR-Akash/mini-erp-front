@@ -101,3 +101,18 @@ export const getJournalVoucherById = async (journalId: number) => {
   const response = await axios.get(url);
   return response.data; // Ensure the API response is returned properly
 };
+
+export const saveJournalVoucher = async (payload: any) => {
+  const response = await axios.post("/api/Accounts/SaveJournalVoucher", payload); // Adjust the API endpoint if needed
+  return response.data;
+};
+
+export const getPartners = async (accountId: any, partnerTypeId: any) => {
+  try {
+    const response = await axios.get(`/api/Configuration/GetPartnerList?accountId=${accountId}&partnerTypeId=${partnerTypeId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Partners:", error);
+    throw error;
+  }
+};
