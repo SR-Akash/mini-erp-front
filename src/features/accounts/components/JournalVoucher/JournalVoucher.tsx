@@ -8,7 +8,8 @@ import {
   Modal,
   Form,
   Select,
-  InputNumber
+  InputNumber,
+  message
 } from "antd";
 import {
   PlusOutlined,
@@ -19,8 +20,10 @@ import {
 import {
   getJournalVoucherLandingData,
   getJournalVoucherById,
-  saveJournalVoucher
-} from "../../service/AccountsService"; // Assuming save API exists
+  saveJournalVoucher,
+  getChartOfAccounts, // Call to fetch chart of accounts
+  getPartners // Call to fetch partners based on templateId
+} from "../../service/AccountsService";
 import moment from "moment";
 import "./JournalVoucher.css";
 
@@ -40,23 +43,29 @@ const JournalVoucherLandingPage: React.FC = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
-  const pageSize = 15; // Number of records per page
+  const pageSize = 15;
 
-  // View modal states
+  // Modal states for viewing journal voucher
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
   const [voucherDetailsLoading, setVoucherDetailsLoading] =
     useState<boolean>(false);
 
-  // Create Modal states
+  // Modal states for creating journal voucher
   const [isCreateModalVisible, setIsCreateModalVisible] =
     useState<boolean>(false);
   const [form] = Form.useForm();
+
+  // Create modal state variables
+  const [chartOfAccounts, setChartOfAccounts] = useState<any[]>([]);
+  const [partners, setPartners] = useState<any[]>([]);
+  const [templateId, setTemplateId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchJournalVouchers();
   }, [searchValue, dateRange, currentPage]);
 
+  // Fetch the journal vouchers for the landing page
   const fetchJournalVouchers = async () => {
     setLoading(true);
     const fromDate = dateRange[0]
@@ -75,13 +84,14 @@ const JournalVoucherLandingPage: React.FC = () => {
         pageSize
       );
       setJournalVouchers(data.data);
-      setTotalCount(data.totalCount); // Set total count for pagination
+      setTotalCount(data.totalCount);
     } catch (error) {
       console.error("Failed to load journal vouchers", error);
     }
     setLoading(false);
   };
 
+  // Fetch details for the view modal
   const fetchVoucherDetails = async (voucherId: number) => {
     setVoucherDetailsLoading(true);
     try {
@@ -91,6 +101,51 @@ const JournalVoucherLandingPage: React.FC = () => {
       console.error("Failed to load journal voucher details", error);
     }
     setVoucherDetailsLoading(false);
+  };
+
+  // Fetch Chart of Accounts when the create modal is opened
+  const fetchChartOfAccounts = async () => {
+    try {
+      const data = await getChartOfAccounts(1);
+      setChartOfAccounts(data);
+    } catch (error) {
+      message.error("Failed to load Chart of Accounts");
+    }
+  };
+
+  // Fetch Partners (Customer/Supplier) based on templateId
+  const fetchPartners = async (partnerTypeId: number) => {
+    try {
+      const data = await getPartners(1, partnerTypeId);
+      setPartners(data);
+    } catch (error) {
+      message.error("Failed to load partners");
+    }
+  };
+
+  // Handle Chart Of Account change and fetch partners if templateId is 3 or 8
+  const handleChartOfAccountChange = (chartofAccId: number) => {
+    const selectedAccount = chartOfAccounts.find(
+      (account) => account.chartofAccId === chartofAccId
+    ); // Use chartofAccId
+
+    if (selectedAccount && selectedAccount.templateId !== undefined) {
+      const selectedTemplateId = selectedAccount.templateId;
+      setTemplateId(selectedTemplateId);
+
+      // Fetch partners based on the templateId
+      if (selectedTemplateId === 3) {
+        fetchPartners(1); // Load customers (partnerTypeId = 1)
+      } else if (selectedTemplateId === 8) {
+        fetchPartners(2); // Load suppliers (partnerTypeId = 2)
+      }
+    } else {
+      message.error(
+        "Invalid chart of account selection or missing templateId."
+      );
+      setTemplateId(null);
+      setPartners([]); // Clear any previously loaded partners
+    }
   };
 
   // Handle form submission (save API call)
@@ -105,6 +160,7 @@ const JournalVoucherLandingPage: React.FC = () => {
     }
   };
 
+  // Handle Search and Date changes
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
   };
@@ -122,12 +178,14 @@ const JournalVoucherLandingPage: React.FC = () => {
   };
 
   const handleCreateClick = () => {
-    setIsCreateModalVisible(true); // Open the create modal
+    setIsCreateModalVisible(true);
+    fetchChartOfAccounts(); // Fetch chart of accounts when modal is opened
   };
 
+  // View Journal Voucher (open modal)
   const handleViewClick = (record: any) => {
     setIsModalVisible(true);
-    fetchVoucherDetails(record.subLedgerHeaderId);
+    fetchVoucherDetails(record.subLedgerHeaderId); // Load voucher details for the view modal
   };
 
   const handlePageChange = (page: number) => {
@@ -136,7 +194,7 @@ const JournalVoucherLandingPage: React.FC = () => {
 
   const handleCloseModal = () => {
     setIsModalVisible(false);
-    setSelectedVoucher(null); // Clear the modal content
+    setSelectedVoucher(null); // Clear modal data when closed
   };
 
   const handleCloseCreateModal = () => {
@@ -218,17 +276,16 @@ const JournalVoucherLandingPage: React.FC = () => {
         rowKey="transactionCode"
         loading={loading}
         className="custom-table"
-        pagination={false} // We will manage pagination manually
+        pagination={false}
       />
 
-      {/* Pagination Component */}
       <div className="pagination-container">
         <Pagination
           current={currentPage}
           total={totalCount}
           pageSize={pageSize}
           onChange={handlePageChange}
-          showSizeChanger={false} // You can enable this if you want to change page size
+          showSizeChanger={false}
         />
       </div>
 
@@ -252,7 +309,7 @@ const JournalVoucherLandingPage: React.FC = () => {
               <div className="header-row">
                 <span className="label">Transaction No:</span>
                 <span className="value">
-                  {selectedVoucher.header.transactionCode}
+                  {selectedVoucher.header.subLedgerCode}
                 </span>
               </div>
               <div className="header-row">
@@ -269,10 +326,7 @@ const JournalVoucherLandingPage: React.FC = () => {
                   {selectedVoucher.header.transactionTypeName}
                 </span>
               </div>
-              <div className="header-row">
-                <span className="label">Office Name:</span>
-                <span className="value">MGM Head Office</span>
-              </div>
+
               <div className="header-row">
                 <span className="label">Action By:</span>
                 <span className="value">
@@ -284,10 +338,6 @@ const JournalVoucherLandingPage: React.FC = () => {
                 <span className="value">
                   {selectedVoucher.header.narration}
                 </span>
-              </div>
-              <div className="header-row">
-                <span className="label">Attachment:</span>
-                <span className="value">N/A</span>
               </div>
             </div>
 
@@ -364,6 +414,7 @@ const JournalVoucherLandingPage: React.FC = () => {
         width={1000}
       >
         <Form form={form} onFinish={handleSave} layout="vertical">
+          {/* Date Picker */}
           <Form.Item
             name="date"
             label="Date"
@@ -372,6 +423,7 @@ const JournalVoucherLandingPage: React.FC = () => {
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
 
+          {/* Narration Field */}
           <Form.Item
             name="narration"
             label="Narration"
@@ -380,11 +432,20 @@ const JournalVoucherLandingPage: React.FC = () => {
             <Input.TextArea rows={3} />
           </Form.Item>
 
+          {/* Dynamic Row List */}
           <Form.List name="items">
             {(fields, { add, remove }) => (
               <>
                 {fields.map((field, index) => (
-                  <div key={field.key} className="item-row">
+                  <div
+                    key={field.key}
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      marginBottom: "10px"
+                    }}
+                  >
+                    {/* Chart Of Account Dropdown */}
                     <Form.Item
                       {...field}
                       name={[field.name, "chartOfAccount"]}
@@ -396,28 +457,52 @@ const JournalVoucherLandingPage: React.FC = () => {
                           message: "Chart Of Account is required"
                         }
                       ]}
+                      style={{ flex: 2 }}
                     >
-                      <Select placeholder="Select Account">
-                        <Option value="cash">Cash in Hand</Option>
-                        <Option value="bank">Bank</Option>
-                        <Option value="sales">Sales Revenue</Option>
+                      <Select
+                        placeholder="Select Account"
+                        onChange={(chartofAccId) =>
+                          handleChartOfAccountChange(chartofAccId)
+                        }
+                      >
+                        {chartOfAccounts.map((account: any) => (
+                          <Option
+                            key={account.chartofAccId}
+                            value={account.chartofAccId}
+                          >
+                            {account.chartOfAccName}
+                          </Option>
+                        ))}
                       </Select>
                     </Form.Item>
 
+                    {/* Partner Input Field */}
                     <Form.Item
                       {...field}
                       name={[field.name, "partner"]}
                       fieldKey={[field.fieldKey, "partner"]}
                       label="Customer/Supplier/Employee"
+                      style={{ flex: 2 }}
                     >
-                      <Input placeholder="Enter name" />
+                      <Select placeholder="Select Name">
+                        {partners.map((partner: any) => (
+                          <Option
+                            key={partner.partnerId}
+                            value={partner.partnerName}
+                          >
+                            {partner.name}
+                          </Option>
+                        ))}
+                      </Select>
                     </Form.Item>
 
+                    {/* Debit Input Field */}
                     <Form.Item
                       {...field}
                       name={[field.name, "debit"]}
                       fieldKey={[field.fieldKey, "debit"]}
                       label="Debit"
+                      style={{ flex: 1 }}
                     >
                       <InputNumber
                         placeholder="Debit"
@@ -425,11 +510,13 @@ const JournalVoucherLandingPage: React.FC = () => {
                       />
                     </Form.Item>
 
+                    {/* Credit Input Field */}
                     <Form.Item
                       {...field}
                       name={[field.name, "credit"]}
                       fieldKey={[field.fieldKey, "credit"]}
                       label="Credit"
+                      style={{ flex: 1 }}
                     >
                       <InputNumber
                         placeholder="Credit"
@@ -437,6 +524,7 @@ const JournalVoucherLandingPage: React.FC = () => {
                       />
                     </Form.Item>
 
+                    {/* Remove Row Button */}
                     <Button
                       type="danger"
                       icon={<MinusCircleOutlined />}
@@ -446,11 +534,13 @@ const JournalVoucherLandingPage: React.FC = () => {
                   </div>
                 ))}
 
+                {/* Add Row Button */}
                 <Button
                   type="dashed"
                   onClick={() => add()}
                   block
                   icon={<PlusOutlined />}
+                  style={{ marginTop: "20px" }}
                 >
                   Add Row
                 </Button>
