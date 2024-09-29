@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Input, notification } from "antd";
-
+import { Button, Modal, Input, notification, Table } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import "./SupplierProfile.css"; // Ensure your CSS is linked properly
 import { Supplier } from "models/Supplier";
 import { getSuppliers, createSupplier } from "../../services/SupplierService";
@@ -8,8 +8,7 @@ import { useAppSelector } from "globalRedux/hooks";
 
 const SupplierProfile: React.FC = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // Modal state
-  const [supplierCode, setSupplierCode] = useState<string>("");
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [supplierName, setSupplierName] = useState<string>("");
   const [supplierContact, setSupplierContact] = useState<string>("");
   const [supplierAddress, setSupplierAddress] = useState<string>("");
@@ -18,6 +17,7 @@ const SupplierProfile: React.FC = () => {
     (state) => state?.localStorage?.auth || {}
   );
   const accountId = profileData.accountId;
+
   // Fetch suppliers from API when the component is mounted
   useEffect(() => {
     loadSuppliers();
@@ -40,20 +40,15 @@ const SupplierProfile: React.FC = () => {
   // Close Modal
   const handleCancel = () => {
     setIsModalVisible(false);
-    resetFormFields(); // Reset form fields on close
+    resetFormFields();
   };
 
   // Handle Form Submission (Saving Supplier)
   const handleSave = async () => {
     try {
-      const values = {
-        supplierCode,
-        supplierName,
-        supplierContact,
-        supplierAddress
-      };
+      const values = { supplierName, supplierContact, supplierAddress };
 
-      var payload = {
+      const payload = {
         partnerName: values.supplierName,
         accountId: profileData.accountId,
         partnerTypeId: 2,
@@ -65,41 +60,52 @@ const SupplierProfile: React.FC = () => {
         isActive: true
       };
 
-      await createSupplier(payload); // Call API to create the supplier
-      notification.success({ message: "Supplier created successfully!" }); // Show success notification
-      setIsModalVisible(false); // Close the modal after submission
-      resetFormFields(); // Reset form fields
-      loadSuppliers(); // Reload the supplier list to reflect the new supplier
+      await createSupplier(payload);
+      notification.success({ message: "Supplier created successfully!" });
+      setIsModalVisible(false);
+      resetFormFields();
+      loadSuppliers();
     } catch (errorInfo) {
       console.error("Error creating supplier:", errorInfo);
-      notification.error({ message: "Failed to create supplier." }); // Show error notification
+      notification.error({ message: "Failed to create supplier." });
     }
   };
 
   const resetFormFields = () => {
-    setSupplierCode("");
     setSupplierName("");
     setSupplierContact("");
     setSupplierAddress("");
   };
 
-  return (
-    <div>
-      <div className="supplier-profile-header">
-        <h2>Supplier Profile</h2>
+  // Define columns for Ant Design Table
+  const columns = [
+    {
+      title: "SL",
+      dataIndex: "sl",
+      key: "sl",
+      render: (_: any, __: any, index: number) => index + 1
+    },
+    { title: "Supplier Code", dataIndex: "partnerCode", key: "partnerCode" },
+    { title: "Supplier Name", dataIndex: "partnerName", key: "partnerName" },
+    { title: "Contact", dataIndex: "mobile", key: "mobile" },
+    { title: "Address", dataIndex: "address", key: "address" }
+  ];
 
-        {/* Button to open the modal */}
+  return (
+    <div className="supplier-container">
+      <div className="header-container">
+        <h3>Supplier List</h3>
         <Button
           type="primary"
           onClick={showModal}
-          className="create-supplier-btn"
-          style={{ float: "right", marginBottom: "20px" }}
+          icon={<PlusOutlined />}
+          className="create-button"
         >
           Create Supplier
         </Button>
       </div>
 
-      {/* Ant Design Modal for Create Supplier */}
+      {/* Modal for Creating New Supplier */}
       <Modal
         title="Create New Supplier"
         visible={isModalVisible}
@@ -132,7 +138,7 @@ const SupplierProfile: React.FC = () => {
             />
           </div>
 
-          {/* Supplier Description */}
+          {/* Supplier Address */}
           <div className="form-group">
             <label htmlFor="supplierAddress">Supplier Address</label>
             <Input.TextArea
@@ -158,28 +164,13 @@ const SupplierProfile: React.FC = () => {
       </Modal>
 
       {/* Supplier Table */}
-      <table>
-        <thead>
-          <tr>
-            <th>SL</th>
-            <th>Supplier Code</th>
-            <th>Supplier Name</th>
-            <th>Contact</th>
-            <th>Address</th>
-          </tr>
-        </thead>
-        <tbody>
-          {suppliers.map((supplier, index) => (
-            <tr key={index}>
-              <td>{index + 1}</td> {/* SL - Serial Number */}
-              <td>{supplier.partnerCode}</td>
-              <td>{supplier.partnerName}</td>
-              <td>{supplier.mobile}</td>
-              <td>{supplier.address}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        columns={columns}
+        dataSource={suppliers}
+        rowKey="partnerCode"
+        className="supplier-table"
+        pagination={{ pageSize: 5 }} // Add pagination like in Bank design
+      />
     </div>
   );
 };

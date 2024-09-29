@@ -1,73 +1,56 @@
-.create-item-modal .ant-modal-content {
-  padding: 20px;
-}
-
-.create-item-modal .ant-modal-header {
-  background-color: #f0f0f0;
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-.form-group label {
-  font-weight: 500;
-  color: #000;
-  margin-bottom: 5px;
-  display: block;
-}
-
-.form-actions {
-  margin-top: 20px;
-}
-
-.ant-input,
-.ant-input-textarea {
+.item-container {
   padding: 10px;
-  font-size: 14px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 0px;
 }
 
-.ant-btn-primary {
-  background-color: #10b981;
-  border-color: #10b981;
-}
-
-.ant-btn-primary:hover {
-  background-color: #10b981;
-  border-color: #10b981;
-}
-
-.item-profile-header {
+.header-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
-.create-item-btn {
-  float: right;
+.create-button {
   background-color: #10b981;
   border-color: #10b981;
-  margin-bottom: 20px;
+  color: white;
+  padding: 8px 16px;
+  transition: background-color 0.3s ease;
+  border-radius: 0px;
 }
 
-.create-item-btn:hover {
-  background-color: #10b981;
-  border-color: #10b981;
+.create-button:hover {
+  background-color: #0a9c67;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
+.item-table .ant-table {
+  border-radius: 0px;
+  overflow: hidden;
 }
 
-table th,
-table td {
-  border: 1px solid #ddd;
-  padding: 10px;
+.item-table .ant-table-row {
+  cursor: pointer;
+  text-align: left; 
+}
+
+.item-table .ant-table-thead > tr > th {
+  background-color: #f0f0f0;
+  font-weight: bold;
   text-align: left;
+  padding: 10px;
 }
 
-table th {
-  background-color: #f2f2f2;
+.create-item-modal {
+  max-width: 600px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
 }

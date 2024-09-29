@@ -1,11 +1,15 @@
 import React, { useState } from "react";
+import { Tabs } from "antd";
 import ItemProfile from "./components/ItemProfile/ItemProfile";
 import EmployeeProfile from "./components/EmployeeProfile/EmployeeProfile";
 import Account from "./components/Account/Account";
 import CustomerProfile from "./components/CustomerProfile/CustomerProfile";
 import SupplierProfile from "./components/SupplierProfile/SupplierProfile";
 import OtherCustomerProfile from "./components/OtherCustomerProfile/OtherCustomerProfile";
-import "./ConfigurationPage.css";
+import Bank from "./components/Bank/Bank"; // Import the Bank component
+import "./ConfigurationPage.css"; // Custom styles
+
+const { TabPane } = Tabs;
 
 const ConfigurationPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("ItemProfile");
@@ -24,30 +28,31 @@ const ConfigurationPage: React.FC = () => {
         return <SupplierProfile />;
       case "OtherCustomerProfile":
         return <OtherCustomerProfile />;
+      case "Bank":
+        return <Bank />;
       default:
         return <ItemProfile />;
     }
   };
 
   return (
-    <div>
+    <div className="configuration-container">
       <h2>Configuration</h2> <br />
-      <div className="tabs">
-        <button onClick={() => setActiveTab("ItemProfile")}>
-          Item Profile
-        </button>
-
-        <button onClick={() => setActiveTab("CustomerProfile")}>
-          Customer Profile
-        </button>
-        <button onClick={() => setActiveTab("SupplierProfile")}>
-          Supplier Profile
-        </button>
-        <button onClick={() => setActiveTab("OtherCustomerProfile")}>
-          Other Customer Profile
-        </button>
+      <div className="tab-layout">
+        <Tabs
+          activeKey={activeTab}
+          onChange={(key) => setActiveTab(key)}
+          tabPosition="left" // Set the tabs position to the left
+          className="custom-tabs"
+        >
+          <TabPane tab="Item Profile" key="ItemProfile" />
+          <TabPane tab="Customer Profile" key="CustomerProfile" />
+          <TabPane tab="Supplier Profile" key="SupplierProfile" />
+          <TabPane tab="Other Customer Profile" key="OtherCustomerProfile" />
+          <TabPane tab="Bank" key="Bank" /> {/* Add the Bank tab */}
+        </Tabs>
+        <div className="tab-content">{renderActiveTab()}</div>
       </div>
-      <div className="tab-content">{renderActiveTab()}</div>
     </div>
   );
 };

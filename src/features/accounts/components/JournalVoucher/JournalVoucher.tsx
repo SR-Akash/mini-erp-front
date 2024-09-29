@@ -398,7 +398,6 @@ const JournalVoucherLandingPage: React.FC = () => {
         )}
       </Modal>
 
-      {/* Create Journal Voucher Modal */}
       <Modal
         title="Create Journal Voucher"
         visible={isCreateModalVisible}
@@ -413,20 +412,26 @@ const JournalVoucherLandingPage: React.FC = () => {
         ]}
         width={1000}
       >
-        <Form form={form} onFinish={handleSave} layout="vertical">
-          {/* Date Picker */}
+        {/* Ensure layout is set to "vertical" */}
+        <Form
+          form={form}
+          onFinish={handleSave}
+          layout="vertical"
+          initialValues={{ items: [{}] }}
+        >
+          {/* Date Picker with label */}
           <Form.Item
             name="date"
-            label="Date"
+            label="Date" // Label for Date Field
             rules={[{ required: true, message: "Date is required" }]}
           >
             <DatePicker style={{ width: "100%" }} />
           </Form.Item>
 
-          {/* Narration Field */}
+          {/* Narration Field with label */}
           <Form.Item
             name="narration"
-            label="Narration"
+            label="Narration" // Label for Narration Field
             rules={[{ required: true, message: "Narration is required" }]}
           >
             <Input.TextArea rows={3} />
@@ -445,12 +450,12 @@ const JournalVoucherLandingPage: React.FC = () => {
                       marginBottom: "10px"
                     }}
                   >
-                    {/* Chart Of Account Dropdown */}
+                    {/* Chart Of Account Dropdown with label */}
                     <Form.Item
                       {...field}
                       name={[field.name, "chartOfAccount"]}
                       fieldKey={[field.fieldKey, "chartOfAccount"]}
-                      label="Chart Of Account"
+                      label="Chart Of Account" // Label for Chart of Account Field
                       rules={[
                         {
                           required: true,
@@ -476,12 +481,12 @@ const JournalVoucherLandingPage: React.FC = () => {
                       </Select>
                     </Form.Item>
 
-                    {/* Partner Input Field */}
+                    {/* Partner Input Field with label */}
                     <Form.Item
                       {...field}
                       name={[field.name, "partner"]}
                       fieldKey={[field.fieldKey, "partner"]}
-                      label="Customer/Supplier/Employee"
+                      label="Customer/Supplier/Bank" // Label for Partner Field
                       style={{ flex: 2 }}
                     >
                       <Select placeholder="Select Name">
@@ -496,12 +501,12 @@ const JournalVoucherLandingPage: React.FC = () => {
                       </Select>
                     </Form.Item>
 
-                    {/* Debit Input Field */}
+                    {/* Debit Input Field with label */}
                     <Form.Item
                       {...field}
                       name={[field.name, "debit"]}
                       fieldKey={[field.fieldKey, "debit"]}
-                      label="Debit"
+                      label="Debit" // Label for Debit Field
                       style={{ flex: 1 }}
                     >
                       <InputNumber
@@ -510,12 +515,12 @@ const JournalVoucherLandingPage: React.FC = () => {
                       />
                     </Form.Item>
 
-                    {/* Credit Input Field */}
+                    {/* Credit Input Field with label */}
                     <Form.Item
                       {...field}
                       name={[field.name, "credit"]}
                       fieldKey={[field.fieldKey, "credit"]}
-                      label="Credit"
+                      label="Credit" // Label for Credit Field
                       style={{ flex: 1 }}
                     >
                       <InputNumber

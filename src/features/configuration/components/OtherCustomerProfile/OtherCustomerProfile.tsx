@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Input, notification } from "antd";
-
+import { Button, Modal, Input, notification, Table } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import "./OtherPartnerProfile.css"; // Ensure your CSS is linked properly
-
 import {
   getOtherPartners,
   createOtherPartner
 } from "../../services/OtherPartnerService";
-
 import { OtherPartner } from "models/OtherPartner";
 import { useAppSelector } from "globalRedux/hooks";
 
 const OtherPartnerProfile: React.FC = () => {
   const [otherPartners, setOtherPartners] = useState<OtherPartner[]>([]);
-  const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // Modal state
-  const [partnerCode, setPartnerCode] = useState<string>("");
+  const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [partnerName, setPartnerName] = useState<string>("");
   const [partnerContact, setPartnerContact] = useState<string>("");
   const [partnerAddress, setPartnerAddress] = useState<string>("");
@@ -22,9 +19,8 @@ const OtherPartnerProfile: React.FC = () => {
   const { profileData } = useAppSelector(
     (state) => state?.localStorage?.auth || {}
   );
-
   const accountId = profileData.accountId;
-  // Fetch other partners from API when the component is mounted
+
   useEffect(() => {
     loadOtherPartners();
   }, [accountId]);
@@ -38,28 +34,20 @@ const OtherPartnerProfile: React.FC = () => {
     }
   };
 
-  // Open Modal
   const showModal = () => {
     setIsModalVisible(true);
   };
 
-  // Close Modal
   const handleCancel = () => {
     setIsModalVisible(false);
     resetFormFields(); // Reset form fields on close
   };
 
-  // Handle Form Submission (Saving Other Partner)
   const handleSave = async () => {
     try {
-      const values = {
-        partnerCode,
-        partnerName,
-        partnerContact,
-        partnerAddress
-      };
+      const values = { partnerName, partnerContact, partnerAddress };
 
-      var payload = {
+      const payload = {
         partnerName: values.partnerName,
         accountId: profileData.accountId,
         partnerTypeId: 3,
@@ -71,41 +59,73 @@ const OtherPartnerProfile: React.FC = () => {
         isActive: true
       };
 
-      await createOtherPartner(payload); // Call API to create the other partner
-      notification.success({ message: "Other Partner created successfully!" }); // Show success notification
-      setIsModalVisible(false); // Close the modal after submission
-      resetFormFields(); // Reset form fields
-      loadOtherPartners(); // Reload the other partner list to reflect the new entry
+      await createOtherPartner(payload);
+      notification.success({ message: "Other Partner created successfully!" });
+      setIsModalVisible(false);
+      resetFormFields();
+      loadOtherPartners();
     } catch (errorInfo) {
       console.error("Error creating other partner:", errorInfo);
-      notification.error({ message: "Failed to create other partner." }); // Show error notification
+      notification.error({ message: "Failed to create other partner." });
     }
   };
 
   const resetFormFields = () => {
-    setPartnerCode("");
     setPartnerName("");
     setPartnerContact("");
     setPartnerAddress("");
   };
 
-  return (
-    <div>
-      <div className="other-partner-profile-header">
-        <h2>Other Partner Profile</h2>
+  // Define columns for Ant Design Table
+  const columns = [
+    {
+      title: "SL",
+      dataIndex: "sl",
+      key: "sl",
+      width: "5%", // Adjust width
+      render: (_: any, __: any, index: number) => index + 1
+    },
+    {
+      title: "Partner Code",
+      dataIndex: "partnerCode",
+      key: "partnerCode",
+      width: "20%" // Adjust width
+    },
+    {
+      title: "Partner Name",
+      dataIndex: "partnerName",
+      key: "partnerName",
+      width: "25%" // Adjust width
+    },
+    {
+      title: "Contact",
+      dataIndex: "mobile",
+      key: "mobile",
+      width: "20%" // Adjust width
+    },
+    {
+      title: "Address",
+      dataIndex: "address",
+      key: "address",
+      width: "25%" // Adjust width
+    }
+  ];
 
-        {/* Button to open the modal */}
+  return (
+    <div className="other-partner-container">
+      <div className="header-container">
+        <h3>Other Partner List</h3>
         <Button
           type="primary"
           onClick={showModal}
-          className="create-other-partner-btn"
-          style={{ float: "right", marginBottom: "20px" }}
+          icon={<PlusOutlined />}
+          className="create-button"
         >
           Create Other Partner
         </Button>
       </div>
 
-      {/* Ant Design Modal for Create Other Partner */}
+      {/* Modal for Creating New Other Partner */}
       <Modal
         title="Create New Other Partner"
         visible={isModalVisible}
@@ -114,7 +134,6 @@ const OtherPartnerProfile: React.FC = () => {
         className="create-other-partner-modal"
       >
         <form>
-          {/* Partner Name */}
           <div className="form-group">
             <label htmlFor="partnerName">Partner Name</label>
             <Input
@@ -126,7 +145,6 @@ const OtherPartnerProfile: React.FC = () => {
             />
           </div>
 
-          {/* Partner Contact */}
           <div className="form-group">
             <label htmlFor="partnerContact">Partner Mobile</label>
             <Input
@@ -138,7 +156,6 @@ const OtherPartnerProfile: React.FC = () => {
             />
           </div>
 
-          {/* Partner Address */}
           <div className="form-group">
             <label htmlFor="partnerAddress">Partner Address</label>
             <Input.TextArea
@@ -149,7 +166,6 @@ const OtherPartnerProfile: React.FC = () => {
             />
           </div>
 
-          {/* Save and Cancel buttons */}
           <div className="form-actions">
             <Button
               type="primary"
@@ -164,28 +180,13 @@ const OtherPartnerProfile: React.FC = () => {
       </Modal>
 
       {/* Other Partner Table */}
-      <table>
-        <thead>
-          <tr>
-            <th>SL</th>
-            <th>Partner Code</th>
-            <th>Partner Name</th>
-            <th>Contact</th>
-            <th>Address</th>
-          </tr>
-        </thead>
-        <tbody>
-          {otherPartners.map((partner, index) => (
-            <tr key={index}>
-              <td>{index + 1}</td> {/* SL - Serial Number */}
-              <td>{partner.partnerCode}</td>
-              <td>{partner.partnerName}</td>
-              <td>{partner.mobile}</td>
-              <td>{partner.address}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        columns={columns}
+        dataSource={otherPartners}
+        rowKey="partnerCode"
+        className="other-partner-table"
+        pagination={{ pageSize: 5 }}
+      />
     </div>
   );
 };

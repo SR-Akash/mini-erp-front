@@ -85,4 +85,7 @@
   .item-row .ant-form-item {
     flex: 1;
   }
-  
+  .ant-form-item-label {
+    display: block !important; /* Ensure labels are visible */
+    font-weight: bold;
+  }

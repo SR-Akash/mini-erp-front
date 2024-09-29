@@ -1,25 +1,60 @@
-.other-partner-profile-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  
-  .create-other-partner-btn {
-    background-color: #10b981;
-    border-color: #10b981;
-    color: white;
-  }
-  
-  .create-other-partner-modal {
-    max-width: 600px;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-actions {
-    display: flex;
-    justify-content: flex-end;
-  }
-  
+.other-partner-container {
+  padding: 10px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.create-button {
+  background-color: #10b981;
+  border-color: #10b981;
+  color: white;
+  padding: 8px 16px;
+  transition: background-color 0.3s ease;
+  border-radius: 4px;
+}
+
+.create-button:hover {
+  background-color: #0a9c67;
+}
+
+.other-partner-table .ant-table {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.other-partner-table .ant-table-row {
+  cursor: pointer;
+}
+
+.other-partner-table .ant-table-thead > tr > th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+  text-align: left; /* Align header text to the left */
+  padding: 10px;
+}
+
+.other-partner-table .ant-table-cell {
+  text-align: left; /* Align table data to the left */
+  padding: 10px;
+}
+
+.create-other-partner-modal {
+  max-width: 600px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+}

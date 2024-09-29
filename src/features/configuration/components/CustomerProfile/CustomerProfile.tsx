@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Input, notification } from "antd";
-
+import { Button, Modal, Input, notification, Table } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
 import "./CustomerProfile.css"; // Ensure your CSS is linked properly
 import { Customer } from "models/Customer";
-
 import { getCustomers, createCustomer } from "../../services/CustomerService";
 import { useAppSelector } from "globalRedux/hooks";
+
 const CustomerProfile: React.FC = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // Modal state
-  const [customerCode, setCustomerCode] = useState<string>("");
   const [customerName, setCustomerName] = useState<string>("");
   const [customerContact, setCustomerContact] = useState<string>("");
   const [customerAddress, setCustomerAddress] = useState<string>("");
@@ -48,13 +47,12 @@ const CustomerProfile: React.FC = () => {
   const handleSave = async () => {
     try {
       const values = {
-        customerCode,
         customerName,
         customerContact,
         customerAddress
       };
 
-      var payload = {
+      const payload = {
         partnerName: values.customerName,
         accountId: profileData.accountId,
         partnerTypeId: 1,
@@ -78,23 +76,34 @@ const CustomerProfile: React.FC = () => {
   };
 
   const resetFormFields = () => {
-    setCustomerCode("");
     setCustomerName("");
     setCustomerContact("");
     setCustomerAddress("");
   };
 
-  return (
-    <div>
-      <div className="customer-profile-header">
-        <h2>Customer Profile</h2>
+  // Define columns for Ant Design Table
+  const columns = [
+    {
+      title: "SL",
+      dataIndex: "sl",
+      key: "sl",
+      render: (_: any, __: any, index: number) => index + 1
+    },
+    { title: "Customer Code", dataIndex: "partnerCode", key: "partnerCode" },
+    { title: "Customer Name", dataIndex: "partnerName", key: "partnerName" },
+    { title: "Contact", dataIndex: "mobile", key: "mobile" },
+    { title: "Address", dataIndex: "address", key: "address" }
+  ];
 
-        {/* Button to open the modal */}
+  return (
+    <div className="customer-container">
+      <div className="header-container">
+        <h3>Customer List</h3>
         <Button
           type="primary"
           onClick={showModal}
-          className="create-customer-btn"
-          style={{ float: "right", marginBottom: "20px" }}
+          icon={<PlusOutlined />}
+          className="create-button"
         >
           Create Customer
         </Button>
@@ -158,29 +167,13 @@ const CustomerProfile: React.FC = () => {
         </form>
       </Modal>
 
-      {/* Customer Table */}
-      <table>
-        <thead>
-          <tr>
-            <th>SL</th>
-            <th>Customer Code</th>
-            <th>Customer Name</th>
-            <th>Contact</th>
-            <th>Address</th>
-          </tr>
-        </thead>
-        <tbody>
-          {customers.map((customer, index) => (
-            <tr key={index}>
-              <td>{index + 1}</td> {/* SL - Serial Number */}
-              <td>{customer.partnerCode}</td>
-              <td>{customer.partnerName}</td>
-              <td>{customer.mobile}</td>
-              <td>{customer.address}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* Customer Table using Ant Design */}
+      <Table
+        columns={columns}
+        dataSource={customers}
+        rowKey="partnerCode"
+        className="customer-table"
+      />
     </div>
   );
 };

@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Input, notification } from "antd";
+import { Button, Modal, Input, notification, Table } from "antd";
 import { getItems, createItem } from "../../services/ItemService";
 import { Item } from "models/Item";
 import "./ItemProfile.css"; // Ensure your CSS is linked properly
 import { useAppSelector } from "globalRedux/hooks";
+import { PlusOutlined } from "@ant-design/icons";
 
 const ItemProfile: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false); // Modal state
-  const [itemCode, setItemCode] = useState<string>("");
   const [itemName, setItemName] = useState<string>("");
   const [uomName, setUomName] = useState<string>("");
   const [itemDescription, setItemDescription] = useState<string>("");
@@ -43,12 +43,13 @@ const ItemProfile: React.FC = () => {
   const { profileData } = useAppSelector(
     (state) => state?.localStorage?.auth || {}
   );
+
   // Handle Form Submission (Saving Item)
   const handleSave = async () => {
     try {
-      const values = { itemCode, itemName, uomName, itemDescription };
+      const values = { itemName, uomName, itemDescription };
 
-      var payload = {
+      const payload = {
         itemCode: "",
         itemName: values.itemName,
         uomId: 0,
@@ -60,40 +61,55 @@ const ItemProfile: React.FC = () => {
       };
 
       await createItem(payload); // Call API to create the item
-      notification.success({ message: "Item created successfully!" }); // Show success notification
+      notification.success({ message: "Item created successfully!" });
       setIsModalVisible(false); // Close the modal after submission
       resetFormFields(); // Reset form fields
       loadItems(); // Reload the item list to reflect the new item
     } catch (errorInfo) {
       console.error("Error creating item:", errorInfo);
-      notification.error({ message: "Failed to create item." }); // Show error notification
+      notification.error({ message: "Failed to create item." });
     }
   };
 
   const resetFormFields = () => {
-    setItemCode("");
     setItemName("");
     setUomName("");
     setItemDescription("");
   };
 
-  return (
-    <div>
-      <div className="item-profile-header">
-        <h2>Item Profile</h2>
+  // Define columns for Ant Design Table
+  const columns = [
+    {
+      title: "SL",
+      dataIndex: "sl",
+      key: "sl",
+      render: (_: any, __: any, index: number) => index + 1
+    },
+    { title: "Item Code", dataIndex: "itemCode", key: "itemCode" },
+    { title: "Item Name", dataIndex: "itemName", key: "itemName" },
+    { title: "UoM", dataIndex: "uomName", key: "uomName" },
+    {
+      title: "Item Description",
+      dataIndex: "itemDescription",
+      key: "itemDescription"
+    }
+  ];
 
-        {/* Button to open the modal */}
+  return (
+    <div className="item-container">
+      <div className="header-container">
+        <h3>Item List</h3>
         <Button
           type="primary"
           onClick={showModal}
-          className="create-item-btn"
-          style={{ float: "right", marginBottom: "20px" }}
+          icon={<PlusOutlined />}
+          className="create-button"
         >
           Create Item
         </Button>
       </div>
 
-      {/* Ant Design Modal for Create Item */}
+      {/* Modal for Creating New Item */}
       <Modal
         title="Create New Item"
         visible={isModalVisible}
@@ -116,7 +132,7 @@ const ItemProfile: React.FC = () => {
 
           {/* Unit of Measure */}
           <div className="form-group">
-            <label htmlFor="uomName">Uom</label>
+            <label htmlFor="uomName">UoM</label>
             <Input
               id="uomName"
               value={uomName}
@@ -152,28 +168,13 @@ const ItemProfile: React.FC = () => {
       </Modal>
 
       {/* Item Table */}
-      <table>
-        <thead>
-          <tr>
-            <th>SL</th>
-            <th>Item Code</th>
-            <th>Item Name</th>
-            <th>UoM</th>
-            <th>Item Description</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((item, index) => (
-            <tr key={index}>
-              <td>{index + 1}</td> {/* SL - Serial Number */}
-              <td>{item.itemCode}</td>
-              <td>{item.itemName}</td>
-              <td>{item.uomName}</td>
-              <td>{item.itemDescription}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        columns={columns}
+        dataSource={items}
+        rowKey="itemCode"
+        className="item-table"
+        pagination={{ pageSize: 5 }}
+      />
     </div>
   );
 };
