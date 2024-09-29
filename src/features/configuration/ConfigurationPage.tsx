@@ -6,7 +6,7 @@ import Account from "./components/Account/Account";
 import CustomerProfile from "./components/CustomerProfile/CustomerProfile";
 import SupplierProfile from "./components/SupplierProfile/SupplierProfile";
 import OtherCustomerProfile from "./components/OtherCustomerProfile/OtherCustomerProfile";
-import Bank from "./components/Bank/Bank"; // Import the Bank component
+import Bank from "./components/Bank/BankLandingPage"; // Import the Bank component
 import "./ConfigurationPage.css"; // Custom styles
 
 const { TabPane } = Tabs;

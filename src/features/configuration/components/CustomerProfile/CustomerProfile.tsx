@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Input, notification, Table } from "antd";
+import { Button, Modal, Input, notification, Table, message, Form } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import "./CustomerProfile.css"; // Ensure your CSS is linked properly
 import { Customer } from "models/Customer";
@@ -65,13 +65,13 @@ const CustomerProfile: React.FC = () => {
       };
 
       await createCustomer(payload); // Call API to create the customer
-      notification.success({ message: "Customer created successfully!" }); // Show success notification
+      message.success("Customer created successfully!"); // Show success notification
       setIsModalVisible(false); // Close the modal after submission
       resetFormFields(); // Reset form fields
       loadCustomers(); // Reload the customer list to reflect the new customer
     } catch (errorInfo) {
       console.error("Error creating customer:", errorInfo);
-      notification.error({ message: "Failed to create customer." }); // Show error notification
+      message.error("Failed to create customer."); // Show error notification
     }
   };
 
@@ -117,54 +117,63 @@ const CustomerProfile: React.FC = () => {
         footer={null}
         className="create-customer-modal"
       >
-        <form>
+        <Form
+          layout="vertical" // Ensures the form is in a vertical layout with proper spacing
+          onFinish={handleSave} // This will call handleSave on form submission
+        >
           {/* Customer Name */}
-          <div className="form-group">
-            <label htmlFor="customerName">Customer Name</label>
+          <Form.Item
+            label="Customer Name"
+            name="customerName"
+            rules={[
+              { required: true, message: "Please enter the customer name" }
+            ]}
+          >
             <Input
-              id="customerName"
               value={customerName}
               onChange={(e) => setCustomerName(e.target.value)}
               placeholder="Enter Customer Name"
-              required
             />
-          </div>
+          </Form.Item>
 
-          {/* Customer Contact */}
-          <div className="form-group">
-            <label htmlFor="customerContact">Customer Mobile</label>
+          {/* Customer Mobile */}
+          <Form.Item
+            label="Customer Mobile"
+            name="customerContact"
+            rules={[
+              { required: true, message: "Please enter the customer mobile" }
+            ]}
+          >
             <Input
-              id="customerContact"
               value={customerContact}
               onChange={(e) => setCustomerContact(e.target.value)}
               placeholder="Enter Customer Mobile"
-              required
             />
-          </div>
+          </Form.Item>
 
           {/* Customer Address */}
-          <div className="form-group">
-            <label htmlFor="customerAddress">Customer Address</label>
+          <Form.Item label="Customer Address" name="customerAddress">
             <Input.TextArea
-              id="customerAddress"
               value={customerAddress}
               onChange={(e) => setCustomerAddress(e.target.value)}
               placeholder="Enter Customer Address"
             />
-          </div>
+          </Form.Item>
 
           {/* Save and Cancel buttons */}
-          <div className="form-actions">
-            <Button
-              type="primary"
-              onClick={handleSave}
-              style={{ marginRight: "10px" }}
-            >
-              Save
-            </Button>
-            <Button onClick={handleCancel}>Cancel</Button>
-          </div>
-        </form>
+          <Form.Item>
+            <div className="form-actions">
+              <Button
+                type="primary"
+                htmlType="submit"
+                style={{ marginRight: "10px" }}
+              >
+                Save
+              </Button>
+              <Button onClick={handleCancel}>Cancel</Button>
+            </div>
+          </Form.Item>
+        </Form>
       </Modal>
 
       {/* Customer Table using Ant Design */}

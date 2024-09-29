@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Input, notification, Table } from "antd";
+import { Button, Modal, Input, notification, Table, message, Form } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import "./OtherPartnerProfile.css"; // Ensure your CSS is linked properly
 import {
@@ -60,13 +60,13 @@ const OtherPartnerProfile: React.FC = () => {
       };
 
       await createOtherPartner(payload);
-      notification.success({ message: "Other Partner created successfully!" });
+      message.success("Other Partner created successfully!");
       setIsModalVisible(false);
       resetFormFields();
       loadOtherPartners();
     } catch (errorInfo) {
       console.error("Error creating other partner:", errorInfo);
-      notification.error({ message: "Failed to create other partner." });
+      message.error("Failed to create other partner.");
     }
   };
 
@@ -133,50 +133,63 @@ const OtherPartnerProfile: React.FC = () => {
         footer={null}
         className="create-other-partner-modal"
       >
-        <form>
-          <div className="form-group">
-            <label htmlFor="partnerName">Partner Name</label>
+        <Form
+          layout="vertical" // This ensures the form is in a vertical layout with proper alignment
+          onFinish={handleSave} // Handle form submission
+        >
+          {/* Partner Name */}
+          <Form.Item
+            label="Partner Name"
+            name="partnerName"
+            rules={[
+              { required: true, message: "Please enter the partner name" }
+            ]}
+          >
             <Input
-              id="partnerName"
               value={partnerName}
               onChange={(e) => setPartnerName(e.target.value)}
               placeholder="Enter Partner Name"
-              required
             />
-          </div>
+          </Form.Item>
 
-          <div className="form-group">
-            <label htmlFor="partnerContact">Partner Mobile</label>
+          {/* Partner Mobile */}
+          <Form.Item
+            label="Partner Mobile"
+            name="partnerContact"
+            rules={[
+              { required: true, message: "Please enter the partner mobile" }
+            ]}
+          >
             <Input
-              id="partnerContact"
               value={partnerContact}
               onChange={(e) => setPartnerContact(e.target.value)}
               placeholder="Enter Partner Mobile"
-              required
             />
-          </div>
+          </Form.Item>
 
-          <div className="form-group">
-            <label htmlFor="partnerAddress">Partner Address</label>
+          {/* Partner Address */}
+          <Form.Item label="Partner Address" name="partnerAddress">
             <Input.TextArea
-              id="partnerAddress"
               value={partnerAddress}
               onChange={(e) => setPartnerAddress(e.target.value)}
               placeholder="Enter Partner Address"
             />
-          </div>
+          </Form.Item>
 
-          <div className="form-actions">
-            <Button
-              type="primary"
-              onClick={handleSave}
-              style={{ marginRight: "10px" }}
-            >
-              Save
-            </Button>
-            <Button onClick={handleCancel}>Cancel</Button>
-          </div>
-        </form>
+          {/* Save and Cancel buttons */}
+          <Form.Item>
+            <div className="form-actions">
+              <Button
+                type="primary"
+                htmlType="submit"
+                style={{ marginRight: "10px" }}
+              >
+                Save
+              </Button>
+              <Button onClick={handleCancel}>Cancel</Button>
+            </div>
+          </Form.Item>
+        </Form>
       </Modal>
 
       {/* Other Partner Table */}

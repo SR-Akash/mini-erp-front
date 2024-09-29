@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Input, notification, Table } from "antd";
+import { Button, Modal, Input, notification, Table, message, Form } from "antd";
 import { getItems, createItem } from "../../services/ItemService";
 import { Item } from "models/Item";
 import "./ItemProfile.css"; // Ensure your CSS is linked properly
@@ -61,7 +61,7 @@ const ItemProfile: React.FC = () => {
       };
 
       await createItem(payload); // Call API to create the item
-      notification.success({ message: "Item created successfully!" });
+      message.success("Item created successfully!");
       setIsModalVisible(false); // Close the modal after submission
       resetFormFields(); // Reset form fields
       loadItems(); // Reload the item list to reflect the new item
@@ -117,54 +117,61 @@ const ItemProfile: React.FC = () => {
         footer={null}
         className="create-item-modal"
       >
-        <form>
+        <Form
+          layout="vertical" // This ensures the form fields are stacked vertically
+          onFinish={handleSave} // Handle form submission on save
+        >
           {/* Item Name */}
-          <div className="form-group">
-            <label htmlFor="itemName">Item Name</label>
+          <Form.Item
+            label="Item Name"
+            name="itemName"
+            rules={[{ required: true, message: "Please enter the item name" }]}
+          >
             <Input
-              id="itemName"
               value={itemName}
               onChange={(e) => setItemName(e.target.value)}
               placeholder="Enter Item Name"
-              required
             />
-          </div>
+          </Form.Item>
 
-          {/* Unit of Measure */}
-          <div className="form-group">
-            <label htmlFor="uomName">UoM</label>
+          {/* Unit of Measure (UoM) */}
+          <Form.Item
+            label="Unit of Measure (UoM)"
+            name="uomName"
+            rules={[
+              { required: true, message: "Please enter the unit of measure" }
+            ]}
+          >
             <Input
-              id="uomName"
               value={uomName}
               onChange={(e) => setUomName(e.target.value)}
               placeholder="Enter Unit of Measure"
-              required
             />
-          </div>
+          </Form.Item>
 
           {/* Item Description */}
-          <div className="form-group">
-            <label htmlFor="itemDescription">Item Description</label>
+          <Form.Item label="Item Description" name="itemDescription">
             <Input.TextArea
-              id="itemDescription"
               value={itemDescription}
               onChange={(e) => setItemDescription(e.target.value)}
               placeholder="Enter Item Description"
             />
-          </div>
+          </Form.Item>
 
           {/* Save and Cancel buttons */}
-          <div className="form-actions">
-            <Button
-              type="primary"
-              onClick={handleSave}
-              style={{ marginRight: "10px" }}
-            >
-              Save
-            </Button>
-            <Button onClick={handleCancel}>Cancel</Button>
-          </div>
-        </form>
+          <Form.Item>
+            <div className="form-actions">
+              <Button
+                type="primary"
+                htmlType="submit"
+                style={{ marginRight: "10px" }}
+              >
+                Save
+              </Button>
+              <Button onClick={handleCancel}>Cancel</Button>
+            </div>
+          </Form.Item>
+        </Form>
       </Modal>
 
       {/* Item Table */}

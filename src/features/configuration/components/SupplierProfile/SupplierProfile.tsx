@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Modal, Input, notification, Table } from "antd";
+import { Button, Modal, Input, notification, Table, message, Form } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import "./SupplierProfile.css"; // Ensure your CSS is linked properly
 import { Supplier } from "models/Supplier";
@@ -61,13 +61,13 @@ const SupplierProfile: React.FC = () => {
       };
 
       await createSupplier(payload);
-      notification.success({ message: "Supplier created successfully!" });
+      message.success("Supplier created successfully!");
       setIsModalVisible(false);
       resetFormFields();
       loadSuppliers();
     } catch (errorInfo) {
       console.error("Error creating supplier:", errorInfo);
-      notification.error({ message: "Failed to create supplier." });
+      message.error("Failed to create supplier.");
     }
   };
 
@@ -113,56 +113,64 @@ const SupplierProfile: React.FC = () => {
         footer={null}
         className="create-supplier-modal"
       >
-        <form>
+        <Form
+          layout="vertical" // This ensures the form is in a vertical layout
+          onFinish={handleSave} // This will call handleSave on form submit
+        >
           {/* Supplier Name */}
-          <div className="form-group">
-            <label htmlFor="supplierName">Supplier Name</label>
+          <Form.Item
+            label="Supplier Name"
+            name="supplierName"
+            rules={[
+              { required: true, message: "Please enter the supplier name" }
+            ]}
+          >
             <Input
-              id="supplierName"
               value={supplierName}
               onChange={(e) => setSupplierName(e.target.value)}
               placeholder="Enter Supplier Name"
-              required
             />
-          </div>
+          </Form.Item>
 
           {/* Supplier Contact */}
-          <div className="form-group">
-            <label htmlFor="supplierContact">Supplier Mobile</label>
+          <Form.Item
+            label="Supplier Mobile"
+            name="supplierContact"
+            rules={[
+              { required: true, message: "Please enter the supplier mobile" }
+            ]}
+          >
             <Input
-              id="supplierContact"
               value={supplierContact}
               onChange={(e) => setSupplierContact(e.target.value)}
               placeholder="Enter Supplier Mobile"
-              required
             />
-          </div>
+          </Form.Item>
 
           {/* Supplier Address */}
-          <div className="form-group">
-            <label htmlFor="supplierAddress">Supplier Address</label>
+          <Form.Item label="Supplier Address" name="supplierAddress">
             <Input.TextArea
-              id="supplierAddress"
               value={supplierAddress}
               onChange={(e) => setSupplierAddress(e.target.value)}
               placeholder="Enter Supplier Address"
             />
-          </div>
+          </Form.Item>
 
           {/* Save and Cancel buttons */}
-          <div className="form-actions">
-            <Button
-              type="primary"
-              onClick={handleSave}
-              style={{ marginRight: "10px" }}
-            >
-              Save
-            </Button>
-            <Button onClick={handleCancel}>Cancel</Button>
-          </div>
-        </form>
+          <Form.Item>
+            <div className="form-actions">
+              <Button
+                type="primary"
+                htmlType="submit"
+                style={{ marginRight: "10px" }}
+              >
+                Save
+              </Button>
+              <Button onClick={handleCancel}>Cancel</Button>
+            </div>
+          </Form.Item>
+        </Form>
       </Modal>
-
       {/* Supplier Table */}
       <Table
         columns={columns}
