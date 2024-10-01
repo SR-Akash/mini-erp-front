@@ -9,7 +9,9 @@ import {
   Form,
   Select,
   InputNumber,
-  message
+  message,
+  Row,
+  Col
 } from "antd";
 import {
   PlusOutlined,
@@ -21,8 +23,9 @@ import {
   getJournalVoucherLandingData,
   getJournalVoucherById,
   saveJournalVoucher,
-  getChartOfAccounts, // Call to fetch chart of accounts
-  getPartners // Call to fetch partners based on templateId
+  getChartOfAccounts,
+  getPartners,
+  getBankAccounts
 } from "../../service/AccountsService";
 import moment from "moment";
 import "./JournalVoucher.css";
@@ -38,28 +41,25 @@ const JournalVoucherLandingPage: React.FC = () => {
   const [dateRange, setDateRange] = useState<
     [moment.Moment | null, moment.Moment | null]
   >([null, null]);
-  const [isFirstLoad, setIsFirstLoad] = useState<boolean>(true);
 
-  // Pagination states
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
   const pageSize = 15;
 
-  // Modal states for viewing journal voucher
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
   const [selectedVoucher, setSelectedVoucher] = useState<any>(null);
   const [voucherDetailsLoading, setVoucherDetailsLoading] =
     useState<boolean>(false);
 
-  // Modal states for creating journal voucher
   const [isCreateModalVisible, setIsCreateModalVisible] =
     useState<boolean>(false);
   const [form] = Form.useForm();
 
-  // Create modal state variables
   const [chartOfAccounts, setChartOfAccounts] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
+  const [banks, setBanks] = useState<any[]>([]);
   const [templateId, setTemplateId] = useState<number | null>(null);
+  const [showPartnerField, setShowPartnerField] = useState<boolean>(false);
 
   useEffect(() => {
     fetchJournalVouchers();
@@ -91,16 +91,17 @@ const JournalVoucherLandingPage: React.FC = () => {
     setLoading(false);
   };
 
-  // Fetch details for the view modal
   const fetchVoucherDetails = async (voucherId: number) => {
     setVoucherDetailsLoading(true);
     try {
       const data = await getJournalVoucherById(voucherId);
       setSelectedVoucher(data);
+      setVoucherDetailsLoading(false); // Set loading to false after data fetch
+      setIsModalVisible(true); // Show the modal after data is fetched
     } catch (error) {
       console.error("Failed to load journal voucher details", error);
+      setVoucherDetailsLoading(false); // Set loading to false even in case of error
     }
-    setVoucherDetailsLoading(false);
   };
 
   // Fetch Chart of Accounts when the create modal is opened
@@ -113,7 +114,6 @@ const JournalVoucherLandingPage: React.FC = () => {
     }
   };
 
-  // Fetch Partners (Customer/Supplier) based on templateId
   const fetchPartners = async (partnerTypeId: number) => {
     try {
       const data = await getPartners(1, partnerTypeId);
@@ -123,83 +123,91 @@ const JournalVoucherLandingPage: React.FC = () => {
     }
   };
 
-  // Handle Chart Of Account change and fetch partners if templateId is 3 or 8
+  const fetchBankAccounts = async () => {
+    try {
+      const data = await getBankAccounts(1, 0);
+      setBanks(data);
+    } catch (error) {
+      message.error("Failed to load bank accounts");
+    }
+  };
+
   const handleChartOfAccountChange = (chartofAccId: number) => {
     const selectedAccount = chartOfAccounts.find(
       (account) => account.chartofAccId === chartofAccId
-    ); // Use chartofAccId
+    );
 
     if (selectedAccount && selectedAccount.templateId !== undefined) {
       const selectedTemplateId = selectedAccount.templateId;
       setTemplateId(selectedTemplateId);
 
-      // Fetch partners based on the templateId
       if (selectedTemplateId === 3) {
-        fetchPartners(1); // Load customers (partnerTypeId = 1)
+        fetchPartners(1);
+        setShowPartnerField(true);
       } else if (selectedTemplateId === 8) {
-        fetchPartners(2); // Load suppliers (partnerTypeId = 2)
+        fetchPartners(2);
+        setShowPartnerField(true);
+      } else if (selectedTemplateId === 2) {
+        fetchBankAccounts();
+        setShowPartnerField(true);
+      } else {
+        setShowPartnerField(false);
+        setPartners([]);
+        setBanks([]);
       }
     } else {
       message.error(
         "Invalid chart of account selection or missing templateId."
       );
       setTemplateId(null);
-      setPartners([]); // Clear any previously loaded partners
+      setShowPartnerField(false);
+      setPartners([]);
     }
   };
 
-  // Handle form submission (save API call)
   const handleSave = async (values: any) => {
+    const payload = {
+      header: {
+        accountId: 1,
+        branchId: 0,
+        narration: values.narration,
+        amount: values.items.reduce(
+          (sum: number, item: any) => sum + item.debit - item.credit,
+          0
+        ),
+        actionById: 1,
+        transactionDate: values.date.format("YYYY-MM-DD")
+      },
+      rows: values.items.map((item: any) => ({
+        partnerId: item.partner || null,
+        partnerName: item.partnerName || "",
+        chartOfAccId: item.chartOfAccount,
+        chartOfAccName:
+          chartOfAccounts.find(
+            (acc) => acc.chartofAccId === item.chartOfAccount
+          )?.chartOfAccName || "",
+        chartOfAccCode:
+          chartOfAccounts.find(
+            (acc) => acc.chartofAccId === item.chartOfAccount
+          )?.chartOfAccCode || "",
+        amount: item.debit || item.credit
+      }))
+    };
+
     try {
-      await saveJournalVoucher(values); // Call the save API with form values
+      await saveJournalVoucher(payload);
+      message.success("Journal voucher saved successfully");
       setIsCreateModalVisible(false);
-      form.resetFields(); // Reset the form after save
-      fetchJournalVouchers(); // Refresh the voucher list
+      form.resetFields();
+      fetchJournalVouchers();
     } catch (error) {
       console.error("Failed to save journal voucher", error);
     }
   };
 
-  // Handle Search and Date changes
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
-  };
-
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      fetchJournalVouchers();
-    }
-  };
-
-  const handleDateChange = (
-    dates: [moment.Moment | null, moment.Moment | null]
-  ) => {
-    setDateRange(dates || []);
-  };
-
   const handleCreateClick = () => {
     setIsCreateModalVisible(true);
-    fetchChartOfAccounts(); // Fetch chart of accounts when modal is opened
-  };
-
-  // View Journal Voucher (open modal)
-  const handleViewClick = (record: any) => {
-    setIsModalVisible(true);
-    fetchVoucherDetails(record.subLedgerHeaderId); // Load voucher details for the view modal
-  };
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalVisible(false);
-    setSelectedVoucher(null); // Clear modal data when closed
-  };
-
-  const handleCloseCreateModal = () => {
-    setIsCreateModalVisible(false);
-    form.resetFields(); // Reset the form when closing
+    fetchChartOfAccounts();
   };
 
   const columns = [
@@ -233,7 +241,10 @@ const JournalVoucherLandingPage: React.FC = () => {
       title: "Action",
       key: "action",
       render: (_text: any, record: any) => (
-        <Button icon={<EyeOutlined />} onClick={() => handleViewClick(record)}>
+        <Button
+          icon={<EyeOutlined />}
+          onClick={() => fetchVoucherDetails(record.subLedgerHeaderId)}
+        >
           View
         </Button>
       )
@@ -249,13 +260,13 @@ const JournalVoucherLandingPage: React.FC = () => {
               placeholder="Search by transaction no."
               prefix={<SearchOutlined />}
               value={searchValue}
-              onChange={handleSearchChange}
-              onKeyDown={handleSearchKeyDown}
+              onChange={(e) => setSearchValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && fetchJournalVouchers()}
               className="search-input"
             />
           </div>
           <div className="col-lg-5">
-            <RangePicker value={dateRange} onChange={handleDateChange} />
+            <RangePicker value={dateRange} onChange={setDateRange} />
           </div>
         </div>
         <div>
@@ -284,7 +295,7 @@ const JournalVoucherLandingPage: React.FC = () => {
           current={currentPage}
           total={totalCount}
           pageSize={pageSize}
-          onChange={handlePageChange}
+          onChange={setCurrentPage}
           showSizeChanger={false}
         />
       </div>
@@ -293,9 +304,13 @@ const JournalVoucherLandingPage: React.FC = () => {
       <Modal
         title="Account Journal Details"
         visible={isModalVisible}
-        onCancel={handleCloseModal}
+        onCancel={() => setIsModalVisible(false)}
         footer={[
-          <Button key="close" type="primary" onClick={handleCloseModal}>
+          <Button
+            key="close"
+            type="primary"
+            onClick={() => setIsModalVisible(false)}
+          >
             Close
           </Button>
         ]}
@@ -398,12 +413,13 @@ const JournalVoucherLandingPage: React.FC = () => {
         )}
       </Modal>
 
+      {/* Create Journal Voucher Modal */}
       <Modal
         title="Create Journal Voucher"
         visible={isCreateModalVisible}
-        onCancel={handleCloseCreateModal}
+        onCancel={() => setIsCreateModalVisible(false)}
         footer={[
-          <Button key="cancel" onClick={handleCloseCreateModal}>
+          <Button key="cancel" onClick={() => setIsCreateModalVisible(false)}>
             Cancel
           </Button>,
           <Button key="save" type="primary" onClick={() => form.submit()}>
@@ -412,146 +428,148 @@ const JournalVoucherLandingPage: React.FC = () => {
         ]}
         width={1000}
       >
-        {/* Ensure layout is set to "vertical" */}
-        <Form
-          form={form}
-          onFinish={handleSave}
-          layout="vertical"
-          initialValues={{ items: [{}] }}
-        >
-          {/* Date Picker with label */}
-          <Form.Item
-            name="date"
-            label="Date" // Label for Date Field
-            rules={[{ required: true, message: "Date is required" }]}
-          >
-            <DatePicker style={{ width: "100%" }} />
-          </Form.Item>
+        <Form form={form} onFinish={handleSave} layout="vertical">
+          <Row gutter={16}>
+            <Col span={8}>
+              <Form.Item
+                name="date"
+                label="Date"
+                rules={[{ required: true, message: "Date is required" }]}
+              >
+                <DatePicker style={{ width: "100%" }} />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="voucherType"
+                label="Voucher Type"
+                rules={[
+                  { required: true, message: "Voucher Type is required" }
+                ]}
+              >
+                <Select placeholder="Select Voucher Type">
+                  <Option value="1">Voucher 1</Option>
+                  <Option value="2">Voucher 2</Option>
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item
+                name="narration"
+                label="Narration"
+                rules={[{ required: true, message: "Narration is required" }]}
+              >
+                <Input />
+              </Form.Item>
+            </Col>
+          </Row>
 
-          {/* Narration Field with label */}
-          <Form.Item
-            name="narration"
-            label="Narration" // Label for Narration Field
-            rules={[{ required: true, message: "Narration is required" }]}
-          >
-            <Input.TextArea rows={3} />
-          </Form.Item>
-
-          {/* Dynamic Row List */}
-          <Form.List name="items">
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map((field, index) => (
-                  <div
-                    key={field.key}
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      marginBottom: "10px"
-                    }}
-                  >
-                    {/* Chart Of Account Dropdown with label */}
-                    <Form.Item
-                      {...field}
-                      name={[field.name, "chartOfAccount"]}
-                      fieldKey={[field.fieldKey, "chartOfAccount"]}
-                      label="Chart Of Account" // Label for Chart of Account Field
-                      rules={[
-                        {
-                          required: true,
-                          message: "Chart Of Account is required"
-                        }
-                      ]}
-                      style={{ flex: 2 }}
-                    >
-                      <Select
-                        placeholder="Select Account"
-                        onChange={(chartofAccId) =>
-                          handleChartOfAccountChange(chartofAccId)
-                        }
-                      >
-                        {chartOfAccounts.map((account: any) => (
-                          <Option
-                            key={account.chartofAccId}
-                            value={account.chartofAccId}
-                          >
-                            {account.chartOfAccName}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-
-                    {/* Partner Input Field with label */}
-                    <Form.Item
-                      {...field}
-                      name={[field.name, "partner"]}
-                      fieldKey={[field.fieldKey, "partner"]}
-                      label="Customer/Supplier/Bank" // Label for Partner Field
-                      style={{ flex: 2 }}
-                    >
-                      <Select placeholder="Select Name">
-                        {partners.map((partner: any) => (
-                          <Option
-                            key={partner.partnerId}
-                            value={partner.partnerName}
-                          >
-                            {partner.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-
-                    {/* Debit Input Field with label */}
-                    <Form.Item
-                      {...field}
-                      name={[field.name, "debit"]}
-                      fieldKey={[field.fieldKey, "debit"]}
-                      label="Debit" // Label for Debit Field
-                      style={{ flex: 1 }}
-                    >
-                      <InputNumber
-                        placeholder="Debit"
-                        style={{ width: "100%" }}
-                      />
-                    </Form.Item>
-
-                    {/* Credit Input Field with label */}
-                    <Form.Item
-                      {...field}
-                      name={[field.name, "credit"]}
-                      fieldKey={[field.fieldKey, "credit"]}
-                      label="Credit" // Label for Credit Field
-                      style={{ flex: 1 }}
-                    >
-                      <InputNumber
-                        placeholder="Credit"
-                        style={{ width: "100%" }}
-                      />
-                    </Form.Item>
-
-                    {/* Remove Row Button */}
-                    <Button
-                      type="danger"
-                      icon={<MinusCircleOutlined />}
-                      onClick={() => remove(field.name)}
-                      style={{ marginTop: 30 }}
-                    />
-                  </div>
-                ))}
-
-                {/* Add Row Button */}
-                <Button
-                  type="dashed"
-                  onClick={() => add()}
-                  block
-                  icon={<PlusOutlined />}
-                  style={{ marginTop: "20px" }}
-                >
-                  Add Row
-                </Button>
-              </>
+          <Table
+            dataSource={form.getFieldValue("items") || [{}]}
+            pagination={false}
+            bordered
+            rowKey="id"
+            footer={() => (
+              <Button
+                type="dashed"
+                onClick={() => {
+                  const items = form.getFieldValue("items") || [];
+                  form.setFieldsValue({
+                    items: [...items, {}]
+                  });
+                }}
+                block
+                icon={<PlusOutlined />}
+              >
+                Add Row
+              </Button>
             )}
-          </Form.List>
+          >
+            <Table.Column
+              title="Chart Of Account"
+              dataIndex="chartOfAccount"
+              render={(_, record, index) => (
+                <Form.Item
+                  name={["items", index, "chartOfAccount"]}
+                  rules={[{ required: true, message: "Required" }]}
+                >
+                  <Select
+                    placeholder="Select Account"
+                    onChange={handleChartOfAccountChange}
+                  >
+                    {chartOfAccounts.map((account: any) => (
+                      <Option
+                        key={account.chartofAccId}
+                        value={account.chartofAccId}
+                      >
+                        {account.chartOfAccName}
+                      </Option>
+                    ))}
+                  </Select>
+                </Form.Item>
+              )}
+            />
+            <Table.Column
+              title="Customer/Supplier/Employee"
+              dataIndex="partner"
+              render={(_, record, index) =>
+                showPartnerField ? (
+                  <Form.Item name={["items", index, "partner"]}>
+                    <Select placeholder="Select Name">
+                      {(templateId === 2 ? banks : partners).map(
+                        (partner: any) => (
+                          <Option
+                            key={partner.partnerId || partner.bankId}
+                            value={partner.partnerName || partner.bankName}
+                          >
+                            {partner.partnerName || partner.bankName}
+                          </Option>
+                        )
+                      )}
+                    </Select>
+                  </Form.Item>
+                ) : null
+              }
+            />
+            <Table.Column
+              title="Debit"
+              dataIndex="debit"
+              render={(_, record, index) => (
+                <Form.Item
+                  name={["items", index, "debit"]}
+                  rules={[{ required: true, message: "Required" }]}
+                >
+                  <InputNumber style={{ width: "100%" }} />
+                </Form.Item>
+              )}
+            />
+            <Table.Column
+              title="Credit"
+              dataIndex="credit"
+              render={(_, record, index) => (
+                <Form.Item
+                  name={["items", index, "credit"]}
+                  rules={[{ required: true, message: "Required" }]}
+                >
+                  <InputNumber style={{ width: "100%" }} />
+                </Form.Item>
+              )}
+            />
+            <Table.Column
+              title="Action"
+              render={(_, record, index) => (
+                <MinusCircleOutlined
+                  onClick={() => {
+                    const items = form.getFieldValue("items") || [];
+                    items.splice(index, 1);
+                    form.setFieldsValue({
+                      items
+                    });
+                  }}
+                />
+              )}
+            />
+          </Table>
         </Form>
       </Modal>
     </div>

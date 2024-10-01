@@ -116,3 +116,18 @@ export const getPartners = async (accountId: any, partnerTypeId: any) => {
     throw error;
   }
 };
+
+
+// Fetch Bank Accounts when templateId = 2
+export const getBankAccounts = async (accountId: number, branchId: number = 0) => {
+  try {
+    const response = await axios.get(`/api/Accounts/GetBankAccountList?accountId=${accountId}&branchId=${branchId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching Bank Accounts:", error);
+    throw error;
+  }
+};
+
+
+ 
