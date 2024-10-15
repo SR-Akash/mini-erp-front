@@ -89,3 +89,17 @@
     display: block !important; /* Ensure labels are visible */
     font-weight: bold;
   }
+
+  .custom-table .ant-select-dropdown {
+    max-height: 200px; /* Adjust as necessary */
+    overflow-y: auto; /* Ensures scrollable dropdown */
+  }
+  
+  .custom-table .ant-select-item {
+    height: auto; /* Adjusts each item’s height */
+  }
+  
+  .custom-table .ant-form-item {
+    margin-bottom: 0; /* Reduces spacing between form items */
+  }
+  

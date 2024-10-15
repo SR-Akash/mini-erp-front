@@ -65,7 +65,6 @@ const JournalVoucherLandingPage: React.FC = () => {
     fetchJournalVouchers();
   }, [searchValue, dateRange, currentPage]);
 
-  // Fetch the journal vouchers for the landing page
   const fetchJournalVouchers = async () => {
     setLoading(true);
     const fromDate = dateRange[0]
@@ -96,15 +95,14 @@ const JournalVoucherLandingPage: React.FC = () => {
     try {
       const data = await getJournalVoucherById(voucherId);
       setSelectedVoucher(data);
-      setVoucherDetailsLoading(false); // Set loading to false after data fetch
+      setVoucherDetailsLoading(false);
       setIsModalVisible(true); // Show the modal after data is fetched
     } catch (error) {
       console.error("Failed to load journal voucher details", error);
-      setVoucherDetailsLoading(false); // Set loading to false even in case of error
+      setVoucherDetailsLoading(false);
     }
   };
 
-  // Fetch Chart of Accounts when the create modal is opened
   const fetchChartOfAccounts = async () => {
     try {
       const data = await getChartOfAccounts(1);
@@ -132,7 +130,7 @@ const JournalVoucherLandingPage: React.FC = () => {
     }
   };
 
-  const handleChartOfAccountChange = (chartofAccId: number) => {
+  const handleChartOfAccountChange = (chartofAccId: number, index: number) => {
     const selectedAccount = chartOfAccounts.find(
       (account) => account.chartofAccId === chartofAccId
     );
@@ -155,6 +153,11 @@ const JournalVoucherLandingPage: React.FC = () => {
         setPartners([]);
         setBanks([]);
       }
+
+      // Clear the partner field when changing the chart of account
+      const currentItems = form.getFieldValue("items") || [];
+      currentItems[index].partner = undefined;
+      form.setFieldsValue({ items: currentItems });
     } else {
       message.error(
         "Invalid chart of account selection or missing templateId."
@@ -418,17 +421,27 @@ const JournalVoucherLandingPage: React.FC = () => {
         title="Create Journal Voucher"
         visible={isCreateModalVisible}
         onCancel={() => setIsCreateModalVisible(false)}
+        width={1000}
         footer={[
           <Button key="cancel" onClick={() => setIsCreateModalVisible(false)}>
             Cancel
           </Button>,
-          <Button key="save" type="primary" onClick={() => form.submit()}>
+          <Button
+            key="save"
+            type="primary"
+            onClick={() => form.submit()}
+            form="journal-voucher-form"
+          >
             Save
           </Button>
         ]}
-        width={1000}
       >
-        <Form form={form} onFinish={handleSave} layout="vertical">
+        <Form
+          form={form}
+          id="journal-voucher-form"
+          onFinish={handleSave}
+          layout="vertical"
+        >
           <Row gutter={16}>
             <Col span={8}>
               <Form.Item
@@ -437,20 +450,6 @@ const JournalVoucherLandingPage: React.FC = () => {
                 rules={[{ required: true, message: "Date is required" }]}
               >
                 <DatePicker style={{ width: "100%" }} />
-              </Form.Item>
-            </Col>
-            <Col span={8}>
-              <Form.Item
-                name="voucherType"
-                label="Voucher Type"
-                rules={[
-                  { required: true, message: "Voucher Type is required" }
-                ]}
-              >
-                <Select placeholder="Select Voucher Type">
-                  <Option value="1">Voucher 1</Option>
-                  <Option value="2">Voucher 2</Option>
-                </Select>
               </Form.Item>
             </Col>
             <Col span={8}>
@@ -495,7 +494,9 @@ const JournalVoucherLandingPage: React.FC = () => {
                 >
                   <Select
                     placeholder="Select Account"
-                    onChange={handleChartOfAccountChange}
+                    onChange={(value) =>
+                      handleChartOfAccountChange(value, index)
+                    }
                   >
                     {chartOfAccounts.map((account: any) => (
                       <Option
@@ -510,7 +511,7 @@ const JournalVoucherLandingPage: React.FC = () => {
               )}
             />
             <Table.Column
-              title="Customer/Supplier/Employee"
+              title="Customer/Supplier/Bank Account"
               dataIndex="partner"
               render={(_, record, index) =>
                 showPartnerField ? (
@@ -519,10 +520,12 @@ const JournalVoucherLandingPage: React.FC = () => {
                       {(templateId === 2 ? banks : partners).map(
                         (partner: any) => (
                           <Option
-                            key={partner.partnerId || partner.bankId}
-                            value={partner.partnerName || partner.bankName}
+                            key={partner.partnerId || partner.chartofAccId}
+                            value={
+                              partner.partnerName || partner.chartofAccName
+                            }
                           >
-                            {partner.partnerName || partner.bankName}
+                            {partner.partnerName || partner.chartofAccName}
                           </Option>
                         )
                       )}
