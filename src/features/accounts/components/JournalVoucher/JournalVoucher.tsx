@@ -61,6 +61,16 @@ const JournalVoucherLandingPage: React.FC = () => {
   const [templateId, setTemplateId] = useState<number | null>(null);
   const [showPartnerField, setShowPartnerField] = useState<boolean>(false);
 
+  const [datas, setDatas] = useState([
+    {
+      chartOfAccount: "",
+      partner: "",
+      debit: "",
+      credit: "",
+      Action: ""
+    }
+  ]);
+
   useEffect(() => {
     fetchJournalVouchers();
   }, [searchValue, dateRange, currentPage]);
@@ -441,6 +451,17 @@ const JournalVoucherLandingPage: React.FC = () => {
           id="journal-voucher-form"
           onFinish={handleSave}
           layout="vertical"
+          initialValues={{
+            items: [
+              {
+                chartOfAccount: "",
+                partner: "",
+                debit: "",
+                credit: "",
+                Action: ""
+              }
+            ]
+          }} // Initialize items
         >
           <Row gutter={16}>
             <Col span={8}>
@@ -464,18 +485,123 @@ const JournalVoucherLandingPage: React.FC = () => {
           </Row>
 
           <Table
-            dataSource={form.getFieldValue("items") || [{}]}
+            style={{ marginTop: "10px" }}
+            dataSource={datas}
             pagination={false}
             bordered
+            columns={[
+              {
+                title: "SL",
+                dataIndex: "rowId",
+                key: "rowId",
+                render: (_, record, index) => <span>{index + 1}</span>
+              },
+              {
+                title: "Chart Of Account",
+                dataIndex: "chartOfAccount",
+                render: (_, record, index) => (
+                  <Form.Item
+                    name={["items", index, "chartOfAccount"]}
+                    rules={[{ required: true, message: "Required" }]}
+                  >
+                    <Select
+                      placeholder="Select Account"
+                      onChange={(value) =>
+                        handleChartOfAccountChange(value, index)
+                      }
+                    >
+                      {chartOfAccounts.map((account) => (
+                        <Option
+                          key={account.chartofAccId}
+                          value={account.chartofAccId}
+                        >
+                          {account.chartOfAccName}
+                        </Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                )
+              },
+              {
+                title: "Customer/Supplier/Bank Account",
+                dataIndex: "partner",
+                key: "partner",
+                render: (_, record, index) =>
+                  showPartnerField ? (
+                    <Form.Item name={["items", index, "partner"]}>
+                      <Select placeholder="Select Name">
+                        {(templateId === 2 ? banks : partners).map(
+                          (partner) => (
+                            <Option
+                              key={partner.partnerId || partner.chartofAccId}
+                              value={
+                                partner.partnerName || partner.chartofAccName
+                              }
+                            >
+                              {partner.partnerName || partner.chartofAccName}
+                            </Option>
+                          )
+                        )}
+                      </Select>
+                    </Form.Item>
+                  ) : null
+              },
+
+              {
+                title: "Debit",
+                dataIndex: "debit",
+                render: (_, record, index) => (
+                  <Form.Item
+                    name={["items", index, "debit"]}
+                    rules={[{ required: true, message: "Required" }]}
+                  >
+                    <InputNumber style={{ width: "100%" }} />
+                  </Form.Item>
+                )
+              },
+              {
+                title: "Credit",
+                dataIndex: "credit",
+                render: (_, record, index) => (
+                  <Form.Item
+                    name={["items", index, "credit"]}
+                    rules={[{ required: true, message: "Required" }]}
+                  >
+                    <InputNumber style={{ width: "100%" }} />
+                  </Form.Item>
+                )
+              },
+              {
+                title: "Action",
+                render: (_, record, index) => (
+                  <MinusCircleOutlined
+                    onClick={() => {
+                      const items = form.getFieldValue("items") || [];
+                      if (items.length > 1) {
+                        items.splice(index, 1);
+                        form.setFieldsValue({ items }); // Update the items array
+                      }
+                    }}
+                  />
+                )
+              }
+            ]}
             rowKey="id"
             footer={() => (
               <Button
                 type="dashed"
                 onClick={() => {
                   const items = form.getFieldValue("items") || [];
-                  form.setFieldsValue({
-                    items: [...items, {}]
-                  });
+                  const object = {
+                    chartOfAccount: "",
+                    partner: "",
+                    debit: "",
+                    credit: "",
+                    Action: ""
+                  };
+                  form.setFieldsValue({ items: [...items, object] });
+                  console.log({ items });
+                  setDatas((prev) => [...prev, items]);
                 }}
                 block
                 icon={<PlusOutlined />}
@@ -483,96 +609,7 @@ const JournalVoucherLandingPage: React.FC = () => {
                 Add Row
               </Button>
             )}
-          >
-            <Table.Column
-              title="Chart Of Account"
-              dataIndex="chartOfAccount"
-              render={(_, record, index) => (
-                <Form.Item
-                  name={["items", index, "chartOfAccount"]}
-                  rules={[{ required: true, message: "Required" }]}
-                >
-                  <Select
-                    placeholder="Select Account"
-                    onChange={(value) =>
-                      handleChartOfAccountChange(value, index)
-                    }
-                  >
-                    {chartOfAccounts.map((account: any) => (
-                      <Option
-                        key={account.chartofAccId}
-                        value={account.chartofAccId}
-                      >
-                        {account.chartOfAccName}
-                      </Option>
-                    ))}
-                  </Select>
-                </Form.Item>
-              )}
-            />
-            <Table.Column
-              title="Customer/Supplier/Bank Account"
-              dataIndex="partner"
-              render={(_, record, index) =>
-                showPartnerField ? (
-                  <Form.Item name={["items", index, "partner"]}>
-                    <Select placeholder="Select Name">
-                      {(templateId === 2 ? banks : partners).map(
-                        (partner: any) => (
-                          <Option
-                            key={partner.partnerId || partner.chartofAccId}
-                            value={
-                              partner.partnerName || partner.chartofAccName
-                            }
-                          >
-                            {partner.partnerName || partner.chartofAccName}
-                          </Option>
-                        )
-                      )}
-                    </Select>
-                  </Form.Item>
-                ) : null
-              }
-            />
-            <Table.Column
-              title="Debit"
-              dataIndex="debit"
-              render={(_, record, index) => (
-                <Form.Item
-                  name={["items", index, "debit"]}
-                  rules={[{ required: true, message: "Required" }]}
-                >
-                  <InputNumber style={{ width: "100%" }} />
-                </Form.Item>
-              )}
-            />
-            <Table.Column
-              title="Credit"
-              dataIndex="credit"
-              render={(_, record, index) => (
-                <Form.Item
-                  name={["items", index, "credit"]}
-                  rules={[{ required: true, message: "Required" }]}
-                >
-                  <InputNumber style={{ width: "100%" }} />
-                </Form.Item>
-              )}
-            />
-            <Table.Column
-              title="Action"
-              render={(_, record, index) => (
-                <MinusCircleOutlined
-                  onClick={() => {
-                    const items = form.getFieldValue("items") || [];
-                    items.splice(index, 1);
-                    form.setFieldsValue({
-                      items
-                    });
-                  }}
-                />
-              )}
-            />
-          </Table>
+          ></Table>
         </Form>
       </Modal>
     </div>
